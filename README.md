@@ -12,6 +12,20 @@
 - CI-пайплайн на GitHub Actions: встановлення залежностей → лінт → тести → демонстрація Secrets;
 - захист головної гілки `main`: PR, обов'язковий статус-чек `build`, мінімум одне схвалення.
 
+## Теорія до лабораторних (HTML)
+
+Матеріали для перегляду в браузері — каталог [`docs/theory/`](docs/theory/README.md):
+
+| Лаб. | Файл |
+|------|------|
+| 1 | [theory-lab1.html](docs/theory/theory-lab1.html) |
+| 2 | [theory-lab2.html](docs/theory/theory-lab2.html) |
+| 3 | [theory-lab3.html](docs/theory/theory-lab3.html) |
+| 4 | [theory-lab4.html](docs/theory/theory-lab4.html) |
+| 5 | [theory-lab5.html](docs/theory/theory-lab5.html) |
+
+Демо скриптів лаб. 3–4 при `php artisan serve`: `/lab3-demo.php`, `/lab3-entity-array.php`, `/lab4-demo.php`.
+
 ## Структура проєкту
 
 ```

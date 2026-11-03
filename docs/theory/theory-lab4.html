@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЛР №4 — теорія: ООП, патерни, SOLID</title>
+<style>
+
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1b2027; --muted:#5a6472;
+  --line:#e2e6ec; --accent:#2f6feb; --accent-soft:#eaf1fe;
+  --green:#18794e; --green-soft:#e8f6ee; --amber:#8a5a00; --amber-soft:#fdf3e0;
+  --red:#b42318; --red-soft:#fdecea; --violet:#6b3fa0; --violet-soft:#f2ecfa;
+  --code-bg:#101827; --code-text:#e7eef9; --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px -16px rgba(16,24,40,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+a{color:var(--accent)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#16233f 0%,#2f6feb 58%,#4f9cf9 100%);color:#fff;padding:42px 22px 36px}
+.hero-in{max-width:1180px;margin:0 auto}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);line-height:1.18;letter-spacing:-.02em}
+.hero p{margin:0;max-width:80ch;font-size:16.5px;opacity:.94}
+.chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#fff}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:30px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:18px}}
+
+/* toc */
+.toc{position:sticky;top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);max-height:calc(100vh - 36px);overflow:auto}
+@media(max-width:960px){.toc{position:static;max-height:none}}
+.toc h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.toc ol{margin:0;padding-left:18px;font-size:14px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none;color:#33404f}
+.toc a:hover{color:var(--accent)}
+.toc .sep{height:1px;background:var(--line);margin:12px 0;list-style:none}
+
+/* typography */
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;margin:0 0 22px;box-shadow:var(--shadow)}
+@media(max-width:600px){section.card{padding:20px 16px}}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:17.5px;margin:26px 0 8px}
+h4{font-size:15px;margin:20px 0 6px;color:#2a3442}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+.small{font-size:13.5px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:11px;
+  overflow:auto;font-size:13.2px;line-height:1.6;margin:12px 0;border:1px solid #1d2b45}
+pre .c{color:#8fa4c4} /* comment-ish not used automatically */
+:not(pre)>code{background:#eef1f6;border:1px solid #e2e7ef;border-radius:6px;
+  padding:1px 6px;font-size:13.4px;color:#243044;white-space:nowrap}
+
+/* tables */
+.tw{overflow:auto;margin:14px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f3f6fb;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#425063}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafcff}
+
+/* callouts */
+.note,.warn,.ok,.danger{border-radius:11px;padding:13px 16px;margin:14px 0;font-size:14.5px;
+  border:1px solid;border-left-width:4px}
+.note{background:var(--accent-soft);border-color:#c8dbfb;border-left-color:var(--accent)}
+.warn{background:var(--amber-soft);border-color:#f3ddb3;border-left-color:#c98a00}
+.ok{background:var(--green-soft);border-color:#bfe6d0;border-left-color:var(--green)}
+.danger{background:var(--red-soft);border-color:#f6cfca;border-left-color:var(--red)}
+.note b,.warn b,.ok b,.danger b{display:block;margin-bottom:2px}
+
+/* diagram */
+.flow{display:grid;gap:10px;margin:16px 0}
+.flow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.node{flex:1 1 150px;background:#f7f9fd;border:1px solid #d9e2f1;border-radius:10px;
+  padding:10px 12px;font-size:13.2px;line-height:1.45}
+.node b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:3px}
+.node.red{background:var(--red-soft);border-color:#f0c7c1}
+.node.red b{color:var(--red)}
+.node.green{background:var(--green-soft);border-color:#b9e2c9}
+.node.green b{color:var(--green)}
+.arrow{flex:0 0 auto;align-self:center;color:#9aa7b8;font-size:18px}
+
+/* timeline */
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:#dbe5f5}
+.steps li:last-child::after{display:none}
+
+/* questions */
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 6px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.b-easy{background:var(--green-soft);border-color:#b9e2c9;color:var(--green)}
+.b-mid{background:var(--amber-soft);border-color:#f0d9ac;color:var(--amber)}
+.b-hard{background:var(--violet-soft);border-color:#dcccf2;color:var(--violet)}
+.qcount{font-size:13px;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:11px;padding:0;margin:10px 0;background:#fcfdff;overflow:hidden}
+details.qa summary{cursor:pointer;list-style:none;padding:13px 16px 13px 42px;position:relative;
+  font-weight:600;font-size:15px;line-height:1.45}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa summary::before{content:"+";position:absolute;left:14px;top:11px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:5px;background:#e9eefb;
+  color:var(--accent);font-weight:700;font-size:15px}
+details.qa[open] summary::before{content:"–"}
+details.qa summary:hover{background:#f2f6ff}
+.qa .ans{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14.6px;background:#fff}
+.qa .ans p:first-child{margin-top:10px}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.btn{appearance:none;border:1px solid #cdd8ea;background:#fff;color:#25324a;border-radius:9px;
+  padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{background:#f2f6ff;border-color:#b6c8e6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#255fce}
+
+/* footer */
+footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);font-size:13.5px}
+.top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 8px 20px -6px rgba(47,111,235,.6);font-size:18px}
+
+@media print{
+  .toc,.top,.qbar,.hero{position:static}
+  body{background:#fff}
+  section.card{box-shadow:none;border:0;padding:0;margin:0 0 8px;page-break-inside:auto}
+  details.qa{page-break-inside:avoid}
+  details.qa .ans{display:block!important}
+}
+
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">Лабораторна робота №4 · Теорія</p>
+    <h1>ООП в PHP: абстракції, трейти, Singleton, Factory, DI</h1>
+    <p>Доменні моделі Product/Customer, патерни проєктування, пакет App\Tasks (варіант 7) і демо lab4-demo.php.</p>
+    <div class="chips"><span class="chip">AbstractEntity</span><span class="chip">Factory</span><span class="chip">Singleton</span><span class="chip">DI</span><span class="chip">App\Tasks</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="toc">
+    <h2>Зміст</h2>
+    <ol>
+<li><a href="#1-обєктно-орієнтований-підхід">Об&#039;єктно-орієнтований підхід</a></li>
+<li><a href="#2-клас-обєкт-інкапсуляція">Клас, об&#039;єкт, інкапсуляція</a></li>
+<li><a href="#3-наслідування-та-abstract-class">Наслідування та abstract class</a></li>
+<li><a href="#4-інтерфейс-vs-абстрактний-клас">Інтерфейс vs абстрактний клас</a></li>
+<li><a href="#5-трейти">Трейти</a></li>
+<li><a href="#6-патерн-singleton">Патерн Singleton</a></li>
+<li><a href="#7-патерн-factory">Патерн Factory</a></li>
+<li><a href="#8-dependency-injection-і-solid">Dependency Injection і SOLID</a></li>
+<li><a href="#9-пакет-apptasks-варіант-7">Пакет App\Tasks (варіант 7)</a></li>
+<li><a href="#10-psr-4-і-структура-каталогів">PSR-4 і структура каталогів</a></li>
+<li><a href="#11-як-усе-складається-в-лаб-4">Як усе складається в лаб. 4</a></li>
+<li><a href="#12-глосарій">Глосарій</a></li>
+<li><a href="#13-питання-для-самоконтролю">Питання для самоконтролю</a></li>
+    </ol>
+    <p class="small" style="margin-top:14px">Репозиторій: <a href="https://github.com/Al-Hav-ic/ci-cd-lab">Al-Hav-ic/ci-cd-lab</a></p>
+  </aside>
+
+  <main>
+<section class="card" id="1-обєктно-орієнтований-підхід">
+<h2><span class="num">01</span>Об&#039;єктно-орієнтований підхід</h2>
+<p>ООП групує &lt;strong&gt;дані&lt;/strong&gt; (властивості) і &lt;strong&gt;поведінку&lt;/strong&gt; (методи) в класах. Об&amp;#039;єкт — екземпляр класу. Переваги для проєкту &lt;code&gt;ci-cd-lab&lt;/code&gt;:</p>
+<ol>
+<ul>
+<li>повторне використання через наслідування й інтерфейси;</li>
+<li>підстановка реалізацій (логер у конsole чи файл);</li>
+<li>відповідність UML лаб. 2 (<code>Product</code>, користувач домену → <code>Customer</code> у коді, <code>User</code> на діаграмі → <code>AbstractEntity</code>).</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="2-клас-обєкт-інкапсуляція">
+<h2><span class="num">02</span>Клас, об&#039;єкт, інкапсуляція</h2>
+<strong>Інкапсуляція</strong> — приховування внутрішнього стану за модифікаторами доступу:
+<div class="tw"><table><thead><tr><th>Модифікатор</th><th>Доступ</th></tr></thead><tbody><tr><td><code>public</code></td><td>скрізь</td></tr><tr><td><code>protected</code></td><td>клас і нащадки</td></tr><tr><td><code>private</code></td><td>лише цей клас</td></tr></tbody></table></div>
+<strong>Constructor Property Promotion</strong> (PHP 8+): параметри конструктора одразу оголошують властивості — менше шаблонного коду в <code>Product</code>, <code>User</code>.
+<strong>Readonly</strong> (PHP 8.2+) — властивість задається один раз (наприклад, сторони <code>Rectangle</code> у <code>app/Tasks/Rectangle.php</code>).
+<hr>
+</section>
+<section class="card" id="3-наслідування-та-abstract-class">
+<h2><span class="num">03</span>Наслідування та abstract class</h2>
+<code>AbstractEntity</code> у <code>app/Models/AbstractEntity.php</code>:
+<ol>
+<ul>
+<li>спільні поля <code>id</code>, <code>createdAt</code> і гетери;</li>
+<li><strong><code>abstract public function getDetails(): string</code></strong> — кожен нащадок (<code>Product</code>, <code>Customer</code>) зобов&#039;язаний реалізувати.</li>
+</ul>
+</ol>
+<p>Абстрактний клас &lt;strong&gt;не інстанціюють&lt;/strong&gt; (&lt;code&gt;new AbstractEntity&lt;/code&gt; — помилка).</p>
+<hr>
+</section>
+<section class="card" id="4-інтерфейс-vs-абстрактний-клас">
+<h2><span class="num">04</span>Інтерфейс vs абстрактний клас</h2>
+<div class="tw"><table><thead><tr><th></th><th>Інтерфейс</th><th>Абстрактний клас</th></tr></thead><tbody><tr><td>Стан (поля)</td><td>не містить реалізації стану</td><td>може містити <code>protected</code> поля</td></tr><tr><td>Множинність</td><td>клас може <code>implements</code> багато</td><td>лише одне <code>extends</code></td></tr><tr><td>Призначення</td><td>контракт «що робити»</td><td>спільна реалізація «як частково»</td></tr></tbody></table></div>
+<code>ExportableInterface</code> вимагає <code>exportToJson(): string</code>. <code>Product</code> <strong>implements</strong> інтерфейс і <strong>use</strong> трейт із реалізацією.
+<hr>
+</section>
+<section class="card" id="5-трейти">
+<h2><span class="num">05</span>Трейти</h2>
+<p>PHP не підтримує множинне наслідування класів. &lt;strong&gt;Trait&lt;/strong&gt; (&lt;code&gt;JsonExportTrait&lt;/code&gt;) додає методи в клас горизонтально.</p>
+<code>get_object_vars($this)</code> у трейті експортує властивості, <strong>видимі</strong> в класі-носії: <code>private</code> нащадка + <code>protected</code> батька. <code>private</code> поля батька в JSON <strong>не потраплять</strong> — у лаб. 4 <code>id</code>/<code>createdAt</code> зроблено <code>protected</code>.
+<code>json_encode</code> може повернути <code>false</code> → перевірка перед <code>: string</code>.
+<hr>
+</section>
+<section class="card" id="6-патерн-singleton">
+<h2><span class="num">06</span>Патерн Singleton</h2>
+<code>App\Core\Database</code>:
+<ol>
+<ul>
+<li><code>private static ?self $instance</code>;</li>
+<li><code>private __construct()</code> — заборона <code>new Database()</code>;</li>
+<li><code>public static function getInstance(): self</code>;</li>
+<li><code>private __clone()</code>, <code>__wakeup()</code> з винятком — захист від другого екземпляра.</li>
+</ul>
+</ol>
+<strong>Призначення:</strong> один «пул» підключення (навчальна імітація). Мінуси: глобальний стан, складні тести — у production часто замінюють DI контейнером.
+<hr>
+</section>
+<section class="card" id="7-патерн-factory">
+<h2><span class="num">07</span>Патерн Factory</h2>
+<code>EntityFactory::createEntity(string $type, array $data): AbstractEntity</code> — <strong><code>match</code></strong> по типу (<code>product</code>, <code>customer</code>, синонім <code>user</code>), касти з масиву, <code>default</code> → <code>InvalidArgumentException</code>.
+<p>Клієнт (&lt;code&gt;public/lab4-demo.php&lt;/code&gt;) не викликає &lt;code&gt;new Product(...)&lt;/code&gt; напряму — додавання типу локалізоване в одному місці.</p>
+<h3>7.1. Порівняння EntityService (лаб. 3) і EntityService (лаб. 4)</h3>
+<div class="tw"><table><thead><tr><th></th><th>Лаб. 3 (<code>EntityFunctions.php</code>)</th><th>Лаб. 4 (клас <code>EntityService</code>)</th></tr></thead><tbody><tr><td>Форма</td><td>функції <code>calculateLineTotal</code>, <code>applyDiscount</code></td><td>методи класу</td></tr><tr><td>Залежності</td><td>немає логера</td><td><code>LoggerInterface</code> через конструктор</td></tr><tr><td>Тип першого аргumentу</td><td><code>float $price</code></td><td><code>Product $product</code> (об&#039;єкт домену)</td></tr><tr><td>Автозавантаження</td><td><code>require_once</code></td><td>PSR-4 + <code>use</code></td></tr></tbody></table></div>
+<p>Обидва варіанти можуть співіснувати в репозиторії: функції — для простих скриптів лаб. 3, клас — для ООП і DI.</p>
+<hr>
+</section>
+<section class="card" id="8-dependency-injection-і-solid">
+<h2><span class="num">08</span>Dependency Injection і SOLID</h2>
+<strong>Dependency Injection:</strong> <code>EntityService</code> (клас у <code>app/Services/EntityService.php</code>) отримує <strong><code>LoggerInterface</code></strong> у конструкторі, а не створює <code>ConsoleLogger</code> всередині.
+<p>Принцип &lt;strong&gt;D (Dependency Inversion):&lt;/strong&gt; залежність від абстракції, не від деталей. Реалізації: &lt;code&gt;ConsoleLogger&lt;/code&gt;, &lt;code&gt;FileLogger&lt;/code&gt; (&lt;code&gt;storage/logs/app.log&lt;/code&gt;).</p>
+<p>Методи: &lt;code&gt;calculateLineTotal(Product $product, ...)&lt;/code&gt;, &lt;code&gt;registerProduct(Product $product)&lt;/code&gt; — доменна логіка + логування.</p>
+<blockquote class="note">Процедурні функції лаб. 3 перенесено в <strong><code>EntityFunctions.php</code></strong>, щоб не конфліктувати з класом <code>EntityService</code>.</blockquote>
+<hr>
+</section>
+<section class="card" id="9-пакет-apptasks-варіант-7">
+<h2><span class="num">09</span>Пакет App\Tasks (варіант 7)</h2>
+<div class="tw"><table><thead><tr><th>Таблиця</th><th>№</th><th>Класи</th><th>Ідея</th></tr></thead><tbody><tr><td>4.2</td><td>2</td><td><code>Student</code>, <code>Group</code></td><td>композиція: група містить масив студентів, <code>searchStudent</code></td></tr><tr><td>4.3</td><td>5</td><td><code>Trial</code> → <code>Test</code> → <code>Exam</code> → <code>FinalExam</code></td><td><code>getPassingScore()</code> через <code>parent::</code> (50→60→80)</td></tr><tr><td>4.4</td><td>1</td><td><code>Rectangle</code></td><td><code>readonly</code> сторони, <code>perimeter()</code>, <code>area()</code></td></tr></tbody></table></div>
+<p>Файли: &lt;code&gt;app/Tasks/*.php&lt;/code&gt;, namespace &lt;code&gt;App\Tasks&lt;/code&gt;. Демонстрація — секція «Варіант 7» у &lt;code&gt;public/lab4-demo.php&lt;/code&gt;.</p>
+<h3>8.1. SOLID у контексті лаб. 4 (коротко)</h3>
+<div class="tw"><table><thead><tr><th>Принцип</th><th>Приклад у репозиторії</th></tr></thead><tbody><tr><td><strong>S</strong> — Single Responsibility</td><td><code>EntityService</code> рахує суму; логер лише пише</td></tr><tr><td><strong>O</strong> — Open/Closed</td><td>новий тип у Factory через нову гілку <code>match</code>, без зміни клієнта</td></tr><tr><td><strong>L</strong> — Liskov Substitution</td><td>змінна <code>AbstractEntity</code> може тримати <code>Product</code> або <code>Customer</code></td></tr><tr><td><strong>I</strong> — Interface Segregation</td><td><code>LoggerInterface</code> — один метод <code>log</code>, без зайвих зобов&#039;язань</td></tr><tr><td><strong>D</strong> — Dependency Inversion</td><td>сервіс залежить від <code>LoggerInterface</code>, не від <code>FileLogger</code></td></tr></tbody></table></div>
+<p>Патерни &lt;strong&gt;не&lt;/strong&gt; мета сама по собі: Singleton у &lt;code&gt;Database&lt;/code&gt; — навчальна демонстрація; у production частіше реєструють PDO-сервіс у контейнері Laravel (лаб. 5+).</p>
+<hr>
+</section>
+<section class="card" id="10-psr-4-і-структура-каталогів">
+<h2><span class="num">10</span>PSR-4 і структура каталогів</h2>
+<pre><code>app/
+├── Core/          Database, EntityFactory
+├── Interfaces/    ExportableInterface, LoggerInterface
+├── Models/        AbstractEntity, Product, Customer (+ Laravel Auth User окремо)
+├── Services/      EntityService, ConsoleLogger, FileLogger, EntityFunctions
+├── Tasks/         Group, Student, Trial, …
+└── Traits/        JsonExportTrait</code></pre>
+<p>Ім&amp;#039;я файлу = ім&amp;#039;я класу. Autoload: &lt;code&gt;composer dump-autoload&lt;/code&gt; після додавання класів.</p>
+<hr>
+</section>
+<section class="card" id="11-як-усе-складається-в-лаб-4">
+<h2><span class="num">11</span>Як усе складається в лаб. 4</h2>
+<ol>
+<ul>
+<li>Абстрактна модель + <code>Product</code> / <code>Customer</code>.</li>
+<li>Інтерфейс експорту + трейт JSON.</li>
+<li>Singleton + Factory у <code>lab4-demo.php</code> (два <code>getInstance()</code> — той самий об&#039;єкт).</li>
+<li>DI: <code>new EntityService(new ConsoleLogger)</code>.</li>
+<li>Три задачі Tasks (вар. 7).</li>
+<li>Гілка <code>feature/oop-patterns</code>, PR, CI, Issue.</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="12-глосарій">
+<h2><span class="num">12</span>Глосарій</h2>
+<div class="tw"><table><thead><tr><th>Термін</th><th>Визначення</th></tr></thead><tbody><tr><td><strong>Composition</strong></td><td>об&#039;єкт містить інші об&#039;єкти (<code>Group</code> → <code>Student</code>)</td></tr><tr><td><strong>Polymorphism</strong></td><td>змінна типу <code>AbstractEntity</code> посилається на <code>Product</code> або <code>Customer</code></td></tr><tr><td><strong>Stub / Mock</strong></td><td>підміна залежності в тестах</td></tr><tr><td><strong>final class</strong></td><td>заборона наслідування (<code>Database</code>, <code>EntityFactory</code>)</td></tr><tr><td><strong>UnhandledMatchError</strong></td><td><code>match</code> без збігу і без <code>default</code></td></tr><tr><td><strong>SOLID</strong></td><td>п&#039;ять принципів проєктування; у лаб. 4 акцент на D</td></tr></tbody></table></div>
+<hr>
+</section>
+<section class="card" id="13-питання-для-самоконтролю">
+<h2><span class="num">13</span>Питання для самоконтролю</h2>
+<ol>
+<ul>
+<li>Чому <strong><code>AbstractEntity</code></strong> — клас, а <strong><code>ExportableInterface</code></strong> — інтерфейс?</li>
+<li>Яку проблему вирішує <strong><code>JsonExportTrait</code></strong>, якщо вже є наслідування від <code>AbstractEntity</code>?</li>
+<li>Навіщо <strong><code>protected</code></strong> для <code>id</code> у батьківському класі?</li>
+<li>Як довести в звіті, що <strong>Singleton</strong> один на процес?</li>
+<li>Що станеться, якщо у <strong><code>match</code></strong> у Factory прибрати <code>default</code>?</li>
+<li>Чим <strong>DI через конструктор</strong> краще за <code>new FileLogger()</code> всередині сервісу?</li>
+<li>Навіщо <strong><code>final</code></strong> для <code>Database</code>?</li>
+<li>Як <strong><code>Exam</code></strong> обчислює прохідний бал відносно <strong><code>Test</code></strong>?</li>
+<li>Чим <strong>композиція</strong> <code>Group</code>–<code>Student</code> відрізняється від наслідування?</li>
+<li>Навіщо в <strong><code>Rectangle</code></strong> перевірка <code>$width &lt;= 0</code> у конструкторі?</li>
+<li>Що поверне <strong><code>instanceof ExportableInterface</code></strong> для <code>$product</code> з фабрики?</li>
+<li>Чому <strong><code>EntityFunctions.php</code></strong> окремо від класу <strong><code>EntityService</code></strong>?</li>
+<li>Як <strong><code>FileLogger</code></strong> створює каталог <code>storage/logs</code>?</li>
+<li>Що виводить <strong><code>lab4-demo.php</code></strong> у секції JSON export?</li>
+<li>Як пакет <strong><code>App\Tasks</code></strong> пов&#039;язаний із вимогами табл. 4.1 (варіант 7)?</li>
+</ul>
+</ol>
+<hr>
+<strong>Далі:</strong> <code>lab4/PLAN.md</code>, запуск <code>php lab4-demo.php</code> або <code>php artisan serve</code> → <code>/lab4-demo.php</code>.
+</section>
+  </main>
+</div>
+
+<footer>
+  <p>Лабораторна №4 · HTML-версія теорії · синхронізовано з <code>docs/theory/theory-lab4.html</code> у GitHub.</p>
+</footer>
+<a class="top" href="#" title="Вгору" aria-label="Вгору">↑</a>
+</body>
+</html>

