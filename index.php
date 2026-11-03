@@ -1,89 +1,91 @@
 <?php
 
 declare(strict_types=1);
-use Faker\Factory;
 
 require_once __DIR__.'/vendor/autoload.php';
-require_once __DIR__.'/app/Services/EntityFunctions.php';
-require_once __DIR__.'/app/Services/DataProcessor.php';
 
-$faker = Factory::create('uk_UA');
-$faker->seed(42);
+use App\Core\Database;
+use App\Core\EntityFactory;
+use App\Interfaces\ExportableInterface;
+use App\Models\Product;
+use App\Services\ConsoleLogger;
+use App\Services\EntityService;
+use App\Tasks\Exam;
+use App\Tasks\FinalExam;
+use App\Tasks\Group;
+use App\Tasks\Rectangle;
+use App\Tasks\Student;
+use App\Tasks\Test;
 
-$prices = [];
-for ($i = 0; $i < 10; $i++) {
-    $prices[] = $faker->randomFloat(2, 150, 5000);
+if (PHP_SAPI !== 'cli') {
+    header('Content-Type: text/html; charset=UTF-8');
+    echo '<pre>';
 }
 
-$minThreshold = 1000.0;
+$eol = PHP_EOL;
 
-$expensive = array_filter($prices, function (float $price) use ($minThreshold): bool {
-    return $price > $minThreshold;
-});
+echo "--- Singleton ---{$eol}";
+$db1 = Database::getInstance();
+$db2 = Database::getInstance();
+echo $db1 === $db2 ? "Екземпляр той самий{$eol}" : "Екземпляри різні{$eol}";
+echo $db1->getConnectionInfo()."{$eol}{$eol}";
 
-$expensive = array_values($expensive);
+echo "--- Factory ---{$eol}";
+$factory = new EntityFactory;
 
-$lineTotal = calculateLineTotal(24999.50, 2, 5.0);
+$product = $factory->createEntity('product', [
+    'id' => '101',
+    'createdAt' => '2026-11-01 10:00:00',
+    'name' => 'Ноутбук Lenovo IdeaPad 3',
+    'price' => 24999.50,
+    'stockQty' => 12,
+    'manufacturer' => 'Lenovo',
+]);
 
-$numbers = [42, 7, 105, 3, 88, 19, 64];
-$text = 'Це речення містить слова різної довжини для перевірки алгоритму';
-$mixed = 'abc123def45';
+$user = $factory->createEntity('user', [
+    'id' => 'u-1',
+    'createdAt' => '2026-10-15 09:30:00',
+    'fullName' => 'Олена Ковальчук',
+    'email' => 'olena@example.com',
+    'role' => 'manager',
+]);
 
-$sorted = sortDescending($numbers);
-$shortened = removeWordsOfLength($text, 3, 5);
-$reordered = digitsFirst($mixed);
-?>
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <title>Лабораторна 3 — функції, Faker, винятки</title>
-</head>
-<body>
-<h1>Функції, замикання, винятки</h1>
-<p><a href="/app/Models/EntityArray.php">Блок 1: масиви (EntityArray.php)</a></p>
+echo $product->getDetails().$eol;
+echo $user->getDetails()."{$eol}{$eol}";
 
-<h2>Згенеровані ціни (Faker)</h2>
-<ul>
-    <?php foreach ($prices as $price) { ?>
-        <li><?= number_format($price, 2, '.', ' ') ?> грн</li>
-    <?php } ?>
-</ul>
-
-<h2>Дорожчі за <?= number_format($minThreshold, 2) ?> грн (array_filter + use)</h2>
-<ul>
-    <?php foreach ($expensive as $price) { ?>
-        <li><?= number_format($price, 2, '.', ' ') ?> грн</li>
-    <?php } ?>
-</ul>
-<p>Знайдено позицій: <?= count($expensive) ?> з <?= count($prices) ?></p>
-
-<h2>Розрахунок вартості (строга типізація)</h2>
-<p>2 × 24 999.50 грн зі знижкою 5 % = <?= number_format($lineTotal, 2, '.', ' ') ?> грн</p>
-
-<h2>Обробка винятку</h2>
-<?php
-try {
-    $discounted = applyDiscount(1000.0, 150.0);
-    echo '<p>Ціна зі знижкою: '.number_format($discounted, 2).' грн</p>';
-} catch (Exception $e) {
-    echo '<p>Помилка: '.htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8').'</p>';
-} finally {
-    echo '<p>Завершення спроби розрахунку.</p>';
+echo "--- JSON export ---{$eol}";
+if ($product instanceof ExportableInterface) {
+    echo $product->exportToJson()."{$eol}{$eol}";
 }
 
-try {
-    $discounted = applyDiscount(1000.0, 10.0);
-    echo '<p>Коректний виклик: 1000 грн − 10 % = '.number_format($discounted, 2).' грн</p>';
-} catch (Exception $e) {
-    echo '<p>Помилка: '.htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8').'</p>';
-}
-?>
+echo "--- DI ---{$eol}";
+$service = new EntityService(new ConsoleLogger);
+$service->registerProduct($product);
 
-<h2>Алгоритмічні задачі (варіант 7)</h2>
-<p>Масив: <?= implode(', ', $numbers) ?></p>
-<p>За спаданням: <?= implode(', ', $sorted) ?></p>
-<p>Без слів довжиною 3–5: <?= htmlspecialchars($shortened, ENT_QUOTES, 'UTF-8') ?></p>
-<p>«<?= htmlspecialchars($mixed, ENT_QUOTES, 'UTF-8') ?>» → «<?= htmlspecialchars($reordered, ENT_QUOTES, 'UTF-8') ?>»</p>
-</body>
-</html>
+if ($product instanceof Product) {
+    $sum = $service->calculateLineTotal($product, 3, 5.0);
+    echo 'Сума до сплати: '.number_format($sum, 2)." грн{$eol}{$eol}";
+}
+
+echo "--- Варіант 7 ---{$eol}";
+
+$group = new Group('g-1', 'КН-21');
+$group->addStudent(new Student('s-1', 'Іван', 'Петренко', '2005-03-14'));
+$group->addStudent(new Student('s-2', 'Марія', 'Іваненко', '2004-11-02'));
+
+echo 'У групі '.count($group->getStudents())." студентів{$eol}";
+$found = $group->searchStudent('петр');
+echo 'Пошук «петр»: '.($found[0]->getFullName() ?? 'нічого не знайдено').$eol;
+
+foreach ([new Test('Поточний тест'), new Exam('Модульний іспит'), new FinalExam('Випускний іспит')] as $trial) {
+    echo $trial->getTitle().': прохідний бал '.$trial->getPassingScore().$eol;
+}
+
+$rectangle = new Rectangle(4.0, 2.5);
+echo 'Прямокутник 4×2.5: периметр '.$rectangle->perimeter()
+    .', площа '.$rectangle->area().$eol;
+
+if (PHP_SAPI !== 'cli') {
+    echo '</pre>';
+    echo '<p><a href="/lab3-demo.php">Демо лаб. 3 (Faker, масиви)</a></p>';
+}
