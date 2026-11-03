@@ -1,0 +1,264 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+hide empty members
+
+abstract class User {
+  - id: Long
+  - email: String
+  - passwordHash: String
+  - fullName: String
+  - role: String
+  - createdAt: DateTime
+  + login(email: String, password: String): Boolean
+  + logout(): void
+  + updateProfile(data: Array): Boolean
+  + changePassword(oldPwd: String, newPwd: String): Boolean
+  + hasRole(role: String): Boolean
+  + getDisplayName(): String
+}
+
+class Customer extends User {
+  - phone: String
+  - address: String
+  - bonusPoints: Int
+  - loyaltyLevel: String
+  - newsletterOptIn: Boolean
+  + placeOrder(cart: Cart): Order
+  + cancelOrder(orderId: Long): Boolean
+  + addReview(product: Product, rating: Int, text: String): Review
+  + getOrderHistory(): Array
+  + spendBonus(points: Int): Boolean
+  + trackOrder(orderId: Long): String
+}
+
+class Manager extends User {
+  - department: String
+  - shift: String
+  - ordersProcessed: Int
+  - maxDiscountPercent: Float
+  - isActive: Boolean
+  + processOrder(orderId: Long): Boolean
+  + updateStock(productId: Long, qty: Int): Boolean
+  + approveDiscount(orderId: Long, percent: Float): Boolean
+  + replyToCustomer(ticketId: Long, text: String): Boolean
+  + getDailyReport(date: Date): Report
+}
+
+class Admin extends Manager {
+  - permissions: Array
+  - lastLoginIp: String
+  - auditLogEnabled: Boolean
+  - twoFactorEnabled: Boolean
+  - accessLevel: Int
+  + manageUsers(): Array
+  + blockUser(userId: Long): Boolean
+  + configureDiscount(code: String, percent: Float): Boolean
+  + exportReport(type: String, period: String): File
+  + backupDatabase(): Boolean
+}
+
+class Category {
+  - id: Long
+  - name: String
+  - slug: String
+  - parentId: Long
+  - isActive: Boolean
+  - sortOrder: Int
+  + getProducts(): Array
+  + getChildren(): Array
+  + moveTo(parentId: Long): Boolean
+  + rename(newName: String): Boolean
+  + countProducts(): Int
+}
+
+class Product {
+  - id: Long
+  - sku: String
+  - name: String
+  - price: Float
+  - stockQty: Int
+  - description: String
+  - isActive: Boolean
+  + isAvailable(): Boolean
+  + decreaseStock(qty: Int): Boolean
+  + increaseStock(qty: Int): Boolean
+  + applyDiscount(percent: Float): Float
+  + getAverageRating(): Float
+}
+
+class Cart {
+  - id: Long
+  - sessionId: String
+  - status: String
+  - createdAt: DateTime
+  - updatedAt: DateTime
+  + addItem(productId: Long, qty: Int): CartItem
+  + removeItem(itemId: Long): Boolean
+  + clear(): void
+  + getTotal(): Float
+  + getItemCount(): Int
+  + isEmpty(): Boolean
+}
+
+class CartItem {
+  - id: Long
+  - productId: Long
+  - quantity: Int
+  - unitPrice: Float
+  - addedAt: DateTime
+  + getSubtotal(): Float
+  + changeQuantity(qty: Int): Boolean
+  + validateStock(): Boolean
+  + toOrderItem(): OrderItem
+  + getProduct(): Product
+}
+
+class Order {
+  - id: Long
+  - number: String
+  - status: String
+  - totalAmount: Float
+  - discountAmount: Float
+  - deliveryAddress: String
+  - createdAt: DateTime
+  + calculateTotal(): Float
+  + applyPromoCode(code: String): Boolean
+  + changeStatus(status: String): Boolean
+  + cancel(reason: String): Boolean
+  + addItem(productId: Long, qty: Int): OrderItem
+  + getInvoice(): File
+}
+
+class OrderItem {
+  - id: Long
+  - productId: Long
+  - productName: String
+  - quantity: Int
+  - unitPrice: Float
+  - discount: Float
+  + getSubtotal(): Float
+  + applyDiscount(percent: Float): Float
+  + changeQuantity(qty: Int): Boolean
+  + toArray(): Array
+  + getProduct(): Product
+}
+
+class Payment {
+  - id: Long
+  - method: String
+  - amount: Float
+  - status: String
+  - transactionId: String
+  - paidAt: DateTime
+  + authorize(): Boolean
+  + capture(): Boolean
+  + refund(amount: Float): Boolean
+  + getStatus(): String
+  + generateReceipt(): File
+}
+
+class Discount {
+  - id: Long
+  - code: String
+  - percent: Float
+  - validFrom: Date
+  - validTo: Date
+  - usageLimit: Int
+  - usedCount: Int
+  + isValid(): Boolean
+  + apply(amount: Float): Float
+  + incrementUsage(): void
+  + isExpired(): Boolean
+  + deactivate(): void
+}
+
+class Review {
+  - id: Long
+  - rating: Int
+  - text: String
+  - createdAt: DateTime
+  - isApproved: Boolean
+  + publish(): Boolean
+  + moderate(approved: Boolean): Boolean
+  + edit(newText: String): Boolean
+  + delete(): Boolean
+  + getAuthor(): Customer
+}
+
+class Report {
+  - id: Long
+  - type: String
+  - periodStart: Date
+  - periodEnd: Date
+  - generatedAt: DateTime
+  - filePath: String
+  + build(data: Array): Report
+  + export(format: String): File
+  + getSummary(): Array
+  + sendTo(email: String): Boolean
+  + delete(): Boolean
+}
+
+abstract class Controller {
+  - request: Request
+  - response: Response
+  - logger: Logger
+  - validator: Validator
+  - middleware: Array
+  + handle(request: Request): Response
+  + validate(rules: Array): Boolean
+  + authorize(action: String): Boolean
+  + json(data: Array, code: Int): Response
+  + redirect(path: String): Response
+  + log(message: String): void
+}
+
+class OrderController extends Controller {
+  - orderService: OrderService
+  - cartService: CartService
+  - paymentService: PaymentService
+  - policy: OrderPolicy
+  - perPage: Int
+  + index(): Response
+  + show(id: Long): Response
+  + store(): Response
+  + update(id: Long): Response
+  + destroy(id: Long): Response
+  + checkout(): Response
+}
+
+class ProductController extends Controller {
+  - productRepository: ProductRepository
+  - categoryRepository: CategoryRepository
+  - searchService: SearchService
+  - policy: ProductPolicy
+  - perPage: Int
+  + index(): Response
+  + search(query: String): Response
+  + show(id: Long): Response
+  + store(): Response
+  + update(id: Long): Response
+  + destroy(id: Long): Response
+}
+
+Customer --|> User
+Manager --|> User
+Admin --|> Manager
+OrderController --|> Controller
+ProductController --|> Controller
+
+Customer "1" -- "0..*" Review : пише >
+Customer "1" -- "0..*" Order : створює >
+Order "0..*" -- "1" Discount : використовує >
+Order "1" -- "0..1" Payment : оплачується >
+
+Category "1" o-- "0..*" Product : групує >
+
+Cart "1" *-- "1..*" CartItem : містить >
+Order "1" *-- "1..*" OrderItem : складається з >
+OrderItem "0..*" --> "1" Product : посилається >
+
+Admin "1" -- "0..*" Report : генерує >
+OrderController ..> Order : керує >
+@enduml
