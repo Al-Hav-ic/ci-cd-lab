@@ -156,8 +156,8 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <header class="hero">
   <div class="hero-in">
     <p class="eyebrow">Лабораторна робота №2 · Теорія</p>
-    <h1>Проєктування веб-системи: аналіз, Use Case та UML</h1>
-    <p>Теоретична база перед `docs/architecture.md`: предметна галузь інтернет-магазину (варіант 7), три форми Use Case, діаграми та зв’язок з Laravel.</p>
+    <h1>Проєктування системи продажу товарів у супермаркеті</h1>
+    <p>Теоретична база перед docs/architecture.md: продаж товарів у супермаркеті (Гавриленко Олексій), Use Case, UML і зв’язок з Laravel.</p>
     <div class="chips"><span class="chip">Use Case</span><span class="chip">PlantUML</span><span class="chip">Class diagram</span><span class="chip">MVC</span><span class="chip">ci-cd-lab/docs</span></div>
   </div>
 </header>
@@ -194,7 +194,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <h2><span class="num">02</span>Аналіз предметної галузі</h2>
 <strong>Предметна галузь</strong> — множина понять і правил реального світу (товар, замовлення, оплата), які система відображає в даних і алгоритмах.
 <p>Мінімальний набір для звіту та &lt;code&gt;architecture.md&lt;/code&gt;:</p>
-<div class="tw"><table><thead><tr><th>Елемент</th><th>Мінімум</th><th>Приклад (інтернет-магазин)</th></tr></thead><tbody><tr><td>Призначення</td><td>1 абзац</td><td>продаж через веб-вітрину з оплатою та доставкою</td></tr><tr><td>Функції</td><td>≥5 дієслів</td><td>шукати, додавати в кошик, оформлювати, оплачувати, звітувати</td></tr><tr><td>Актори</td><td>2–3 + зовнішні</td><td>Покупець, Менеджер, Адміністратор, Платіжний шлюз</td></tr><tr><td>Сценарії</td><td>≥3</td><td>оформлення; скасування; обробка менеджером</td></tr><tr><td>Сутності</td><td>≥5</td><td>Product, Order, Cart, Payment, Category</td></tr><tr><td>Таблиці БД</td><td>≥5</td><td><code>products</code>, <code>orders</code>, <code>cart_items</code>, …</td></tr><tr><td>Вихідні форми</td><td>≥3</td><td>PDF-чек, звіт продажів, графік ТОП-товарів</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Елемент</th><th>Мінімум</th><th>Приклад (супермаркет)</th></tr></thead><tbody><tr><td>Призначення</td><td>1 абзац</td><td>продаж товарів у залі з касою та обліком залишків</td></tr><tr><td>Функції</td><td>≥5 дієслів</td><td>шукати, додавати в кошик, оформлювати покупку, оплачувати, звітувати</td></tr><tr><td>Актори</td><td>2–3 + зовнішні</td><td>Покупець, Касир, Менеджер залу, Адміністратор, Платіжний термінал</td></tr><tr><td>Сценарії</td><td>≥3</td><td>оформлення; скасування; обробка менеджером</td></tr><tr><td>Сутності</td><td>≥5</td><td>Product, Order, Cart, Payment, Category</td></tr><tr><td>Таблиці БД</td><td>≥5</td><td><code>products</code>, <code>orders</code>, <code>cart_items</code>, …</td></tr><tr><td>Вихідні форми</td><td>≥3</td><td>PDF-чек, звіт продажів, графік ТОП-товарів</td></tr></tbody></table></div>
 <strong>Паспорт системи</strong> — таблиця з цими параметрами; вона копіюється в звіт і в розділ 1 <code>docs/architecture.md</code>.
 <hr>
 </section>
@@ -261,7 +261,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <h2><span class="num">10</span>Як усе складається в лаб. 2</h2>
 <ol>
 <ul>
-<li>Обрати тему (варіант 7 — інтернет-магазин) і заповнити паспорт системи.</li>
+<li>Обрати тему (<strong>система продажу товарів у супермаркеті</strong>) і заповнити паспорт системи.</li>
 <li>Описати три UC у трьох формах; повний UC «Оформити замовлення» — з ≥10 кроками та ≥5 extensions.</li>
 <li>Побудувати Use Case діаграму (PlantUML → PNG).</li>
 <li>Побудувати Class діаграму (≥10 класів, усі типи відношень).</li>
@@ -290,7 +290,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <ul>
 <li>Чим <strong>Use Case</strong> відрізняється від окремого <strong>сценарію</strong> або user story?</li>
 <li>Навіщо описувати <strong>межі системи</strong>, якщо «і так зрозуміло», що робить магазин?</li>
-<li>У чому різниця <strong>include</strong> і <strong>extend</strong>? Наведіть приклад з інтернет-магазину.</li>
+<li>У чому різниця <strong>include</strong> і <strong>extend</strong>? Наведіть приклад з супермаркету (наприклад, акційний промокод).</li>
 <li>Чому на діаграмі акторів <strong>Admin → Manager → Customer</strong> — це generalization, а не include?</li>
 <li>Чим <strong>агрегація</strong> відрізняється від <strong>композиції</strong> для <code>Category</code>–<code>Product</code> і <code>Order</code>–<code>OrderItem</code>?</li>
 <li>Навіщо на Class діаграмі вказувати <strong>типи</strong> атрибутів і параметрів операцій?</li>
