@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЛР №3 — теорія: PHP, масиви, Composer, Faker</title>
+<style>
+
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1b2027; --muted:#5a6472;
+  --line:#e2e6ec; --accent:#2f6feb; --accent-soft:#eaf1fe;
+  --green:#18794e; --green-soft:#e8f6ee; --amber:#8a5a00; --amber-soft:#fdf3e0;
+  --red:#b42318; --red-soft:#fdecea; --violet:#6b3fa0; --violet-soft:#f2ecfa;
+  --code-bg:#101827; --code-text:#e7eef9; --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px -16px rgba(16,24,40,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+a{color:var(--accent)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#16233f 0%,#2f6feb 58%,#4f9cf9 100%);color:#fff;padding:42px 22px 36px}
+.hero-in{max-width:1180px;margin:0 auto}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);line-height:1.18;letter-spacing:-.02em}
+.hero p{margin:0;max-width:80ch;font-size:16.5px;opacity:.94}
+.chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#fff}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:30px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:18px}}
+
+/* toc */
+.toc{position:sticky;top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);max-height:calc(100vh - 36px);overflow:auto}
+@media(max-width:960px){.toc{position:static;max-height:none}}
+.toc h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.toc ol{margin:0;padding-left:18px;font-size:14px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none;color:#33404f}
+.toc a:hover{color:var(--accent)}
+.toc .sep{height:1px;background:var(--line);margin:12px 0;list-style:none}
+
+/* typography */
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;margin:0 0 22px;box-shadow:var(--shadow)}
+@media(max-width:600px){section.card{padding:20px 16px}}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:17.5px;margin:26px 0 8px}
+h4{font-size:15px;margin:20px 0 6px;color:#2a3442}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+.small{font-size:13.5px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:11px;
+  overflow:auto;font-size:13.2px;line-height:1.6;margin:12px 0;border:1px solid #1d2b45}
+pre .c{color:#8fa4c4} /* comment-ish not used automatically */
+:not(pre)>code{background:#eef1f6;border:1px solid #e2e7ef;border-radius:6px;
+  padding:1px 6px;font-size:13.4px;color:#243044;white-space:nowrap}
+
+/* tables */
+.tw{overflow:auto;margin:14px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f3f6fb;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#425063}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafcff}
+
+/* callouts */
+.note,.warn,.ok,.danger{border-radius:11px;padding:13px 16px;margin:14px 0;font-size:14.5px;
+  border:1px solid;border-left-width:4px}
+.note{background:var(--accent-soft);border-color:#c8dbfb;border-left-color:var(--accent)}
+.warn{background:var(--amber-soft);border-color:#f3ddb3;border-left-color:#c98a00}
+.ok{background:var(--green-soft);border-color:#bfe6d0;border-left-color:var(--green)}
+.danger{background:var(--red-soft);border-color:#f6cfca;border-left-color:var(--red)}
+.note b,.warn b,.ok b,.danger b{display:block;margin-bottom:2px}
+
+/* diagram */
+.flow{display:grid;gap:10px;margin:16px 0}
+.flow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.node{flex:1 1 150px;background:#f7f9fd;border:1px solid #d9e2f1;border-radius:10px;
+  padding:10px 12px;font-size:13.2px;line-height:1.45}
+.node b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:3px}
+.node.red{background:var(--red-soft);border-color:#f0c7c1}
+.node.red b{color:var(--red)}
+.node.green{background:var(--green-soft);border-color:#b9e2c9}
+.node.green b{color:var(--green)}
+.arrow{flex:0 0 auto;align-self:center;color:#9aa7b8;font-size:18px}
+
+/* timeline */
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:#dbe5f5}
+.steps li:last-child::after{display:none}
+
+/* questions */
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 6px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.b-easy{background:var(--green-soft);border-color:#b9e2c9;color:var(--green)}
+.b-mid{background:var(--amber-soft);border-color:#f0d9ac;color:var(--amber)}
+.b-hard{background:var(--violet-soft);border-color:#dcccf2;color:var(--violet)}
+.qcount{font-size:13px;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:11px;padding:0;margin:10px 0;background:#fcfdff;overflow:hidden}
+details.qa summary{cursor:pointer;list-style:none;padding:13px 16px 13px 42px;position:relative;
+  font-weight:600;font-size:15px;line-height:1.45}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa summary::before{content:"+";position:absolute;left:14px;top:11px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:5px;background:#e9eefb;
+  color:var(--accent);font-weight:700;font-size:15px}
+details.qa[open] summary::before{content:"–"}
+details.qa summary:hover{background:#f2f6ff}
+.qa .ans{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14.6px;background:#fff}
+.qa .ans p:first-child{margin-top:10px}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.btn{appearance:none;border:1px solid #cdd8ea;background:#fff;color:#25324a;border-radius:9px;
+  padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{background:#f2f6ff;border-color:#b6c8e6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#255fce}
+
+/* footer */
+footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);font-size:13.5px}
+.top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 8px 20px -6px rgba(47,111,235,.6);font-size:18px}
+
+@media print{
+  .toc,.top,.qbar,.hero{position:static}
+  body{background:#fff}
+  section.card{box-shadow:none;border:0;padding:0;margin:0 0 8px;page-break-inside:auto}
+  details.qa{page-break-inside:avoid}
+  details.qa .ans{display:block!important}
+}
+
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">Лабораторна робота №3 · Теорія</p>
+    <h1>Основи PHP: структури даних, функції, винятки</h1>
+    <p>Масиви, strict_types, closure, try/catch, Composer і алгоритмічні задачі варіанту 7 у контексті репозиторію ci-cd-lab.</p>
+    <div class="chips"><span class="chip">PHP 8.2</span><span class="chip">EntityArray</span><span class="chip">EntityFunctions</span><span class="chip">DataProcessor</span><span class="chip">Faker</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="toc">
+    <h2>Зміст</h2>
+    <ol>
+<li><a href="#1-php-як-мова-веб-бекенду">PHP як мова веб-бекенду</a></li>
+<li><a href="#2-масиви-в-php">Масиви в PHP</a></li>
+<li><a href="#3-вивід-у-html-і-безпека">Вивід у HTML і безпека</a></li>
+<li><a href="#4-функції-та-strict_types">Функції та strict_types</a></li>
+<li><a href="#5-замикання-та-array_filter">Замикання та array_filter</a></li>
+<li><a href="#6-винятки-try--catch--finally">Винятки: try / catch / finally</a></li>
+<li><a href="#7-composer-і-faker">Composer і Faker</a></li>
+<li><a href="#8-dataprocessor-варіант-7">DataProcessor: варіант 7</a></li>
+<li><a href="#9-звязок-з-лаб-2-і-4">Зв&#039;язок з лаб. 2 і 4</a></li>
+<li><a href="#10-як-усе-складається-в-лаб-3">Як усе складається в лаб. 3</a></li>
+<li><a href="#11-глосарій">Глосарій</a></li>
+<li><a href="#12-питання-для-самоконтролю">Питання для самоконтролю</a></li>
+    </ol>
+    <p class="small" style="margin-top:14px">Репозиторій: <a href="https://github.com/Al-Hav-ic/ci-cd-lab">Al-Hav-ic/ci-cd-lab</a></p>
+  </aside>
+
+  <main>
+<section class="card" id="1-php-як-мова-веб-бекенду">
+<h2><span class="num">01</span>PHP як мова веб-бекенду</h2>
+<p>PHP виконується на сервері; результат (HTML, JSON) надсилається клієнту. У лаб. 3 використовують вбудований сервер:</p>
+<pre><code>php -S localhost:8000</code></pre>
+<p>Кореневий &lt;code&gt;lab3-demo.php&lt;/code&gt; / &lt;code&gt;public/lab3-demo.php&lt;/code&gt; обробляють демо лаб. 3 (&lt;code&gt;/lab3-demo.php&lt;/code&gt; при &lt;code&gt;php artisan serve&lt;/code&gt;). Це спрощена модель Laravel, де точкою входу є &lt;code&gt;public/index.php&lt;/code&gt;.</p>
+<p>Файл починають з &lt;code&gt;&amp;lt;?php&lt;/code&gt; і &lt;strong&gt;&lt;code&gt;declare(strict_types=1);&lt;/code&gt;&lt;/strong&gt; — директива діє в межах файлу й уключає сувору перевірку типів аргументів і повернень.</p>
+<hr>
+</section>
+<section class="card" id="2-масиви-в-php">
+<h2><span class="num">02</span>Масиви в PHP</h2>
+<p>PHP-масив — універсальна структура (ordered map):</p>
+<div class="tw"><table><thead><tr><th>Тип</th><th>Ключі</th><th>Приклад у лаб. 3</th></tr></thead><tbody><tr><td>Індексний</td><td>0, 1, 2, …</td><td>п&#039;ять категорій товарів</td></tr><tr><td>Асоціативний</td><td>рядкові імена</td><td>один «об&#039;єкт» <code>Product</code></td></tr></tbody></table></div>
+<p>Корисні функції:</p>
+<ol>
+<ul>
+<li><code>sort()</code> / <code>rsort()</code> — сортування з переіндексацією;</li>
+<li><code>foreach</code> — обхід елементів;</li>
+<li><code>count()</code> — кількість елементів.</li>
+</ul>
+</ol>
+<p>Для української абетки &lt;code&gt;sort(..., SORT_STRING)&lt;/code&gt; може дати порядок кодових точок, а не словниковий; краще &lt;strong&gt;&lt;code&gt;Collator&lt;/code&gt;&lt;/strong&gt; з розширення &lt;code&gt;intl&lt;/code&gt; (&lt;code&gt;uk_UA&lt;/code&gt;).</p>
+<strong>Завдання 1</strong> реалізують у <code>app/Models/EntityArray.php</code>: масиви + HTML-розмітка в одному файлі (навчальне спрощення; у Laravel View винесуть у Blade).
+<hr>
+</section>
+<section class="card" id="3-вивід-у-html-і-безпека">
+<h2><span class="num">03</span>Вивід у HTML і безпека</h2>
+<p>Будь-які дані з масиву, форми або БД перед виводом у HTML &lt;strong&gt;екранують&lt;/strong&gt;:</p>
+<pre><code>htmlspecialchars($value, ENT_QUOTES, &#039;UTF-8&#039;)</code></pre>
+<p>Інакше можливий &lt;strong&gt;XSS&lt;/strong&gt;: зловмисний рядок у назві товару виконається як скрипт у браузері.</p>
+<p>Сторінка має &lt;code&gt;&amp;lt;meta charset=&amp;quot;UTF-8&amp;quot;&amp;gt;&lt;/code&gt;, файли збережені в UTF-8 без BOM.</p>
+<hr>
+</section>
+<section class="card" id="4-функції-та-strict_types">
+<h2><span class="num">04</span>Функції та strict_types</h2>
+<p>Користувацькі функції з типами аргументів і повернення:</p>
+<pre><code>function calculateLineTotal(float $price, int $quantity, float $discountPercent = 0.0): float</code></pre>
+<p>Без &lt;code&gt;strict_types=1&lt;/code&gt; PHP &lt;strong&gt;приведе&lt;/strong&gt; типи (рядок &lt;code&gt;&amp;quot;1500&amp;quot;&lt;/code&gt; → число). З &lt;code&gt;strict_types=1&lt;/code&gt; некоректний тип → &lt;strong&gt;&lt;code&gt;TypeError&lt;/code&gt;&lt;/strong&gt;.</p>
+<p>Бізнес-перевірки (ціна &amp;lt; 0, знижка &amp;gt; 100 %) кидають &lt;strong&gt;&lt;code&gt;Exception&lt;/code&gt;&lt;/strong&gt; з зрозумілим повідомленням — це доменні помилки, не синтаксичні.</p>
+<p>Функції з &lt;code&gt;app/Services/EntityFunctions.php&lt;/code&gt; (процедурні функції лаб. 3) &lt;strong&gt;не автозавантажуються&lt;/strong&gt; PSR-4 — потрібен &lt;code&gt;require_once&lt;/code&gt; у &lt;code&gt;public/lab3-demo.php&lt;/code&gt;.</p>
+<hr>
+</section>
+<section class="card" id="5-замикання-та-array_filter">
+<h2><span class="num">05</span>Замикання та array_filter</h2>
+<strong>Closure (замикання)</strong> — анонімна функція, що може захоплювати змінні з оточення через <strong><code>use</code></strong>:
+<pre><code>array_filter($prices, function (float $price) use ($minThreshold): bool {
+    return $price &gt; $minThreshold;
+});</code></pre>
+<p>Без &lt;code&gt;use&lt;/code&gt; змінна &lt;code&gt;$minThreshold&lt;/code&gt; всередині closure недоступна.</p>
+<code>array_filter</code> зберігає ключі вихідного масиву; для суцільного списку застосовують <strong><code>array_values()</code></strong>.
+<hr>
+</section>
+<section class="card" id="6-винятки-try--catch--finally">
+<h2><span class="num">06</span>Винятки: try / catch / finally</h2>
+<pre><code>try {
+    $discounted = applyDiscount(1000.0, 150.0);
+} catch (Exception $e) {
+    // обробка помилки
+} finally {
+    // виконується завжди
+}</code></pre>
+<code>finally</code> корисний для логування або звільнення ресурсів незалежно від успіху. У звіті демонструють два виклики: з невалідною знижкою (150 %) і коректною (10 %).
+<hr>
+</section>
+<section class="card" id="7-composer-і-faker">
+<h2><span class="num">07</span>Composer і Faker</h2>
+<strong>Composer</strong> — менеджер залежностей PHP. У <code>composer.json</code>:
+<ol>
+<ul>
+<li><code>require</code> — runtime (наприклад <code>fakerphp/faker</code>);</li>
+<li><code>autoload.psr-4</code> — простір імен <code>App\</code> → <code>app/</code>.</li>
+</ul>
+</ol>
+<p>Після &lt;code&gt;composer require fakerphp/faker&lt;/code&gt; оновлюють &lt;strong&gt;&lt;code&gt;composer.lock&lt;/code&gt;&lt;/strong&gt; і комітять обидва файли — CI виконує &lt;code&gt;composer install&lt;/code&gt; за lock-файлом.</p>
+<strong>Faker</strong> генерує тестові дані:
+<pre><code>$faker = Faker\Factory::create(&#039;uk_UA&#039;);
+$faker-&gt;randomFloat(2, 150, 5000);</code></pre>
+<code>vendor/</code> у <code>.gitignore</code>; локально — <code>composer install</code>.
+<hr>
+</section>
+<section class="card" id="8-dataprocessor-варіант-7">
+<h2><span class="num">08</span>DataProcessor: варіант 7</h2>
+<p>Матриця варіантів (табл. 3.1 методички) для &lt;strong&gt;варіанту 7&lt;/strong&gt;:</p>
+<div class="tw"><table><thead><tr><th>Таблиця</th><th>№ задачі</th><th>Функція</th></tr></thead><tbody><tr><td>3.2 (масиви)</td><td>3</td><td><code>sortDescending()</code> — <code>rsort</code></td></tr><tr><td>3.3 (рядки)</td><td>2</td><td><code>removeWordsOfLength()</code> — <code>preg_split</code>, <code>mb_strlen</code></td></tr><tr><td>3.4 (символи)</td><td>7</td><td><code>digitsFirst()</code> — три «корзини» символів</td></tr></tbody></table></div>
+<p>Файл: &lt;code&gt;app/Services/DataProcessor.php&lt;/code&gt;. Для кирилиці обов&amp;#039;язкові модифікатор &lt;strong&gt;&lt;code&gt;u&lt;/code&gt;&lt;/strong&gt; у regex і &lt;strong&gt;&lt;code&gt;mb_*&lt;/code&gt;&lt;/strong&gt;.</p>
+<h3>2.1. Корисні вбудовані функції (шпаргалка)</h3>
+<div class="tw"><table><thead><tr><th>Функція</th><th>Призначення в лаб. 3</th></tr></thead><tbody><tr><td><code>sort</code> / <code>rsort</code></td><td>категорії за зростанням; <code>sortDescending</code> — спадання</td></tr><tr><td><code>array_filter</code></td><td>дорогі ціни &gt; порогу</td></tr><tr><td><code>array_values</code></td><td>переіндексація після filter</td></tr><tr><td><code>round($x, 2)</code></td><td>грошові суми</td></tr><tr><td><code>number_format</code></td><td>формат виводу в HTML</td></tr><tr><td><code>preg_split</code>, <code>implode</code></td><td>слова в рядку</td></tr><tr><td><code>mb_strlen</code>, <code>mb_str_split</code></td><td>Unicode, кирилиця</td></tr><tr><td><code>preg_match(&#039;/\p{L}/u&#039;)</code></td><td>класифікація літер у <code>digitsFirst</code></td></tr></tbody></table></div>
+<hr>
+</section>
+<section class="card" id="9-звязок-з-лаб-2-і-4">
+<h2><span class="num">09</span>Зв&#039;язок з лаб. 2 і 4</h2>
+<p>Ключі асоціативного масиву в &lt;code&gt;EntityArray.php&lt;/code&gt; (&lt;code&gt;id&lt;/code&gt;, &lt;code&gt;sku&lt;/code&gt;, &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;price&lt;/code&gt;, &lt;code&gt;stock_qty&lt;/code&gt;, &lt;code&gt;manufacturer&lt;/code&gt;, &lt;code&gt;is_active&lt;/code&gt;) відповідають атрибутам &lt;strong&gt;&lt;code&gt;Product&lt;/code&gt;&lt;/strong&gt; на Class діаграмі.</p>
+<p>У лаб. 4 той самий домен стане класом &lt;code&gt;App\Models\Product extends AbstractEntity&lt;/code&gt; з методами &lt;code&gt;getPrice()&lt;/code&gt;, &lt;code&gt;isAvailable()&lt;/code&gt;.</p>
+<hr>
+</section>
+<section class="card" id="10-як-усе-складається-в-лаб-3">
+<h2><span class="num">10</span>Як усе складається в лаб. 3</h2>
+<div class="tw"><table><thead><tr><th>#</th><th>Артефакт</th><th>Шлях у <code>ci-cd-lab</code></th></tr></thead><tbody><tr><td>1</td><td>Масиви + HTML</td><td><code>app/Models/EntityArray.php</code></td></tr><tr><td>2</td><td>Функції, знижка</td><td><code>app/Services/EntityFunctions.php</code></td></tr><tr><td>3</td><td>Faker, closure, винятки</td><td><code>public/lab3-demo.php</code></td></tr><tr><td>4</td><td>Алгоритми вар. 7</td><td><code>app/Services/DataProcessor.php</code></td></tr><tr><td>5</td><td>Залежність Faker</td><td><code>composer.json</code>, <code>composer.lock</code></td></tr></tbody></table></div>
+<p>Гілка &lt;code&gt;feature/php-basics&lt;/code&gt;, PR, &lt;code&gt;Fixes #N&lt;/code&gt;, зелений Pint і PHPUnit. Локально: п&amp;#039;ять блоків результату в браузері.</p>
+<hr>
+</section>
+<section class="card" id="11-глосарій">
+<h2><span class="num">11</span>Глосарій</h2>
+<div class="tw"><table><thead><tr><th>Термін</th><th>Визначення</th></tr></thead><tbody><tr><td><strong>PSR-4</strong></td><td>стандарт автозавантаження класів за namespace</td></tr><tr><td><strong>Lock file</strong></td><td><code>composer.lock</code> — зафіксовані версії пакетів</td></tr><tr><td><strong>Closure</strong></td><td>анонімна функція з можливим <code>use</code></td></tr><tr><td><strong>TypeError</strong></td><td>помилка типів при strict_types</td></tr><tr><td><strong>XSS</strong></td><td>в injection через неекранований HTML-вивід</td></tr><tr><td><strong>rsort</strong></td><td>сортування масиву за спаданням</td></tr><tr><td><strong>Seed (Faker)</strong></td><td>фіксація випадковості для відтворюваних тестів</td></tr></tbody></table></div>
+<hr>
+</section>
+<section class="card" id="12-питання-для-самоконтролю">
+<h2><span class="num">12</span>Питання для самоконтролю</h2>
+<ol>
+<ul>
+<li>Чим <strong>індексний</strong> масив відрізняється від <strong>асоціативного</strong> у PHP?</li>
+<li>Навіщо <code>htmlspecialchars</code> при виводі ціни товару?</li>
+<li>Що змінить <strong><code>declare(strict_types=1);</code></strong> при виклику <code>calculateLineTotal(&#039;100&#039;, 2)</code>?</li>
+<li>Чому функції з <code>EntityFunctions.php</code> потребують <strong><code>require_once</code></strong>, а класи <code>App\Models\*</code> — ні?</li>
+<li>Навіщо в closure <strong><code>use ($minThreshold)</code></strong>?</li>
+<li>Чому після <code>array_filter</code> часто викликають <strong><code>array_values</code></strong>?</li>
+<li>Коли виконується блок <strong><code>finally</code></strong> — при успіху, при catch, чи в обох випадках?</li>
+<li>Навіщо комітити <strong><code>composer.lock</code></strong>, якщо є <code>composer.json</code>?</li>
+<li>Які три функції реалізує <strong>варіант 7</strong> у <code>DataProcessor.php</code>?</li>
+<li>Чому для <code>removeWordsOfLength</code> потрібен <strong><code>mb_strlen</code></strong>, а не <code>strlen</code>?</li>
+<li>Як <strong><code>digitsFirst</code></strong> класифікує символи Unicode-літер?</li>
+<li>Як <strong><code>EntityArray.php</code></strong> пов&#039;язаний з UML-класом Product?</li>
+<li>Чому <strong><code>vendor/</code></strong> не потрапляє в git?</li>
+<li>Що перевіряє <strong><code>./vendor/bin/pint --test</code></strong> у CI?</li>
+<li>Як ключове слово <strong><code>Fixes #N</code></strong> у коміті пов&#039;язує PR із Kanban?</li>
+</ul>
+</ol>
+<hr>
+<strong>Далі:</strong> <code>lab3/PLAN.md</code>. Перевірка: <code>php -S localhost:8000</code>, Pint, PHPUnit.
+</section>
+  </main>
+</div>
+
+<footer>
+  <p>Лабораторна №3 · HTML-версія теорії · синхронізовано з <code>docs/theory/theory-lab3.html</code> у GitHub.</p>
+</footer>
+<a class="top" href="#" title="Вгору" aria-label="Вгору">↑</a>
+</body>
+</html>

@@ -24,7 +24,7 @@ final class EntityFactory
                 (int) ($data['stockQty'] ?? 0),
                 (string) ($data['manufacturer'] ?? 'невідомо'),
             ),
-            'customer' => new Customer(
+            'customer', 'user' => new Customer(
                 (string) ($data['id'] ?? uniqid('u_')),
                 (string) ($data['createdAt'] ?? date('Y-m-d H:i:s')),
                 (string) ($data['fullName'] ?? 'Без імені'),
