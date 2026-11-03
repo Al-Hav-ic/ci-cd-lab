@@ -8,6 +8,10 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Фільтр доступу для POST (лаб. 5): партнерський клієнт / касовий термінал.
+ * Логіка відповідає методичному прикладу CheckRequestIntegrity (X-App-Client, 403, X-Security-Policy).
+ */
 class CheckAppClient
 {
     public function handle(Request $request, Closure $next): Response

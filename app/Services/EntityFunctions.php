@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 /**
- * Вартість позиції замовлення з урахуванням знижки.
+ * Процедурні функції лаб. 3 (методичка: app/Services/EntityService.php).
+ * Файл названо EntityFunctions.php, щоб не конфліктувати з класом EntityService (лаб. 4).
  */
 function calculateLineTotal(float $price, int $quantity, float $discountPercent = 0.0): float
 {

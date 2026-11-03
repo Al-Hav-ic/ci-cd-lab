@@ -39,8 +39,10 @@ Customer --> UC_Cart
 Customer --> UC_Order
 Cashier --> UC_Order
 Cashier --> UC_Pay
+Cashier --> UC_Discount
 Manager --> UC_Process
 Manager --> UC_Stock
+Manager --> UC_Reports
 Admin --> UC_Catalog
 Admin --> UC_Users
 Admin --> UC_Reports

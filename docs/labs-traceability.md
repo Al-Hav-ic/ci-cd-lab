@@ -8,7 +8,7 @@
 | 1 | — | [#2](https://github.com/Al-Hav-ic/ci-cd-lab/pull/2) | CI + Pint + Secrets |
 | 2 | #7 | [#8](https://github.com/Al-Hav-ic/ci-cd-lab/pull/8) | `docs/architecture.md`, UML |
 | 2 (тема) | — | [#13](https://github.com/Al-Hav-ic/ci-cd-lab/pull/13) | супермаркет у `architecture.md` |
-| 3 | [#14](https://github.com/Al-Hav-ic/ci-cd-lab/issues/14) | [#9](https://github.com/Al-Hav-ic/ci-cd-lab/pull/9) | PHP basics, `lab3-demo.php` |
+| 3 | [#14](https://github.com/Al-Hav-ic/ci-cd-lab/issues/14) | [#9](https://github.com/Al-Hav-ic/ci-cd-lab/pull/9) | PHP basics; **вар. 6** DataProcessor; `lab3-demo.php` |
 | 4 | [#15](https://github.com/Al-Hav-ic/ci-cd-lab/issues/15) | [#10](https://github.com/Al-Hav-ic/ci-cd-lab/pull/10) | OOP, `lab4-demo.php` |
 | 5 | [#16](https://github.com/Al-Hav-ic/ci-cd-lab/issues/16) | [#11](https://github.com/Al-Hav-ic/ci-cd-lab/pull/11) | Laravel, middleware, tests |
 | 1 (docs) | [#4](https://github.com/Al-Hav-ic/ci-cd-lab/issues/4) | (цей PR) | процес релізу в README |

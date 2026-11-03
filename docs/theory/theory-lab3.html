@@ -157,7 +157,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
   <div class="hero-in">
     <p class="eyebrow">Лабораторна робота №3 · Теорія</p>
     <h1>Основи PHP: структури даних, функції, винятки</h1>
-    <p>Масиви, strict_types, closure, try/catch, Composer і алгоритмічні задачі варіанту 7 у контексті репозиторію ci-cd-lab.</p>
+    <p>Масиви, strict_types, closure, try/catch, Composer і алгоритмічні задачі варіанту 6 (супермаркет) у репозиторію ci-cd-lab.</p>
     <div class="chips"><span class="chip">PHP 8.2</span><span class="chip">EntityArray</span><span class="chip">EntityFunctions</span><span class="chip">DataProcessor</span><span class="chip">Faker</span></div>
   </div>
 </header>
@@ -173,7 +173,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <li><a href="#5-замикання-та-array_filter">Замикання та array_filter</a></li>
 <li><a href="#6-винятки-try--catch--finally">Винятки: try / catch / finally</a></li>
 <li><a href="#7-composer-і-faker">Composer і Faker</a></li>
-<li><a href="#8-dataprocessor-варіант-7">DataProcessor: варіант 7</a></li>
+<li><a href="#8-dataprocessor-варіант-6">DataProcessor: варіант 6</a></li>
 <li><a href="#9-звязок-з-лаб-2-і-4">Зв&#039;язок з лаб. 2 і 4</a></li>
 <li><a href="#10-як-усе-складається-в-лаб-3">Як усе складається в лаб. 3</a></li>
 <li><a href="#11-глосарій">Глосарій</a></li>
@@ -262,13 +262,13 @@ $faker-&gt;randomFloat(2, 150, 5000);</code></pre>
 <code>vendor/</code> у <code>.gitignore</code>; локально — <code>composer install</code>.
 <hr>
 </section>
-<section class="card" id="8-dataprocessor-варіант-7">
-<h2><span class="num">08</span>DataProcessor: варіант 7</h2>
-<p>Матриця варіантів (табл. 3.1 методички) для &lt;strong&gt;варіанту 7&lt;/strong&gt;:</p>
-<div class="tw"><table><thead><tr><th>Таблиця</th><th>№ задачі</th><th>Функція</th></tr></thead><tbody><tr><td>3.2 (масиви)</td><td>3</td><td><code>sortDescending()</code> — <code>rsort</code></td></tr><tr><td>3.3 (рядки)</td><td>2</td><td><code>removeWordsOfLength()</code> — <code>preg_split</code>, <code>mb_strlen</code></td></tr><tr><td>3.4 (символи)</td><td>7</td><td><code>digitsFirst()</code> — три «корзини» символів</td></tr></tbody></table></div>
+<section class="card" id="8-dataprocessor-варіант-6">
+<h2><span class="num">08</span>DataProcessor: варіант 6</h2>
+<p>Матриця варіантів (табл. 3.1 методички) для &lt;strong&gt;варіанту 6&lt;/strong&gt; (Гавриленко Олексій — супермаркет):</p>
+<div class="tw"><table><thead><tr><th>Таблиця</th><th>№ задачі</th><th>Функція</th></tr></thead><tbody><tr><td>3.2 (масиви)</td><td>3</td><td><code>sortDescending()</code> — <code>rsort</code></td></tr><tr><td>3.3 (рядки)</td><td>4</td><td><code>swapFirstLastWord()</code> — <code>preg_split</code>, swap першого/останнього</td></tr><tr><td>3.4 (символи)</td><td>5</td><td><code>countWordsWithEvenLength()</code> — <code>mb_strlen</code> % 2</td></tr></tbody></table></div>
 <p>Файл: &lt;code&gt;app/Services/DataProcessor.php&lt;/code&gt;. Для кирилиці обов&amp;#039;язкові модифікатор &lt;strong&gt;&lt;code&gt;u&lt;/code&gt;&lt;/strong&gt; у regex і &lt;strong&gt;&lt;code&gt;mb_*&lt;/code&gt;&lt;/strong&gt;.</p>
 <h3>2.1. Корисні вбудовані функції (шпаргалка)</h3>
-<div class="tw"><table><thead><tr><th>Функція</th><th>Призначення в лаб. 3</th></tr></thead><tbody><tr><td><code>sort</code> / <code>rsort</code></td><td>категорії за зростанням; <code>sortDescending</code> — спадання</td></tr><tr><td><code>array_filter</code></td><td>дорогі ціни &gt; порогу</td></tr><tr><td><code>array_values</code></td><td>переіндексація після filter</td></tr><tr><td><code>round($x, 2)</code></td><td>грошові суми</td></tr><tr><td><code>number_format</code></td><td>формат виводу в HTML</td></tr><tr><td><code>preg_split</code>, <code>implode</code></td><td>слова в рядку</td></tr><tr><td><code>mb_strlen</code>, <code>mb_str_split</code></td><td>Unicode, кирилиця</td></tr><tr><td><code>preg_match(&#039;/\p{L}/u&#039;)</code></td><td>класифікація літер у <code>digitsFirst</code></td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Функція</th><th>Призначення в лаб. 3</th></tr></thead><tbody><tr><td><code>sort</code> / <code>rsort</code></td><td>категорії за зростанням; <code>sortDescending</code> — спадання</td></tr><tr><td><code>array_filter</code></td><td>дорогі ціни &gt; порогу</td></tr><tr><td><code>array_values</code></td><td>переіндексація після filter</td></tr><tr><td><code>round($x, 2)</code></td><td>грошові суми</td></tr><tr><td><code>number_format</code></td><td>формат виводу в HTML</td></tr><tr><td><code>preg_split</code>, <code>implode</code></td><td>слова в рядку</td></tr><tr><td><code>mb_strlen</code>, <code>mb_str_split</code></td><td>Unicode, кирилиця</td></tr><tr><td><code>mb_strlen($w, &#039;UTF-8&#039;) % 2</code></td><td>парна довжина слова (3.4 №5)</td></tr></tbody></table></div>
 <hr>
 </section>
 <section class="card" id="9-звязок-з-лаб-2-і-4">
@@ -279,8 +279,9 @@ $faker-&gt;randomFloat(2, 150, 5000);</code></pre>
 </section>
 <section class="card" id="10-як-усе-складається-в-лаб-3">
 <h2><span class="num">10</span>Як усе складається в лаб. 3</h2>
-<div class="tw"><table><thead><tr><th>#</th><th>Артефакт</th><th>Шлях у <code>ci-cd-lab</code></th></tr></thead><tbody><tr><td>1</td><td>Масиви + HTML</td><td><code>app/Models/EntityArray.php</code></td></tr><tr><td>2</td><td>Функції, знижка</td><td><code>app/Services/EntityFunctions.php</code></td></tr><tr><td>3</td><td>Faker, closure, винятки</td><td><code>public/lab3-demo.php</code></td></tr><tr><td>4</td><td>Алгоритми вар. 7</td><td><code>app/Services/DataProcessor.php</code></td></tr><tr><td>5</td><td>Залежність Faker</td><td><code>composer.json</code>, <code>composer.lock</code></td></tr></tbody></table></div>
-<p>Гілка &lt;code&gt;feature/php-basics&lt;/code&gt;, PR, &lt;code&gt;Fixes #N&lt;/code&gt;, зелений Pint і PHPUnit. Локально: п&amp;#039;ять блоків результату в браузері.</p>
+<div class="tw"><table><thead><tr><th>#</th><th>Артефакт</th><th>Шлях у <code>ci-cd-lab</code></th><th>Методичка</th></tr></thead><tbody><tr><td>1</td><td>Масиви + HTML</td><td><code>app/Models/EntityArray.php</code>, URL <code>/lab3-entity-array.php</code></td><td><code>EntityArray.php</code></td></tr><tr><td>2</td><td>Функції, знижка</td><td><code>app/Services/EntityFunctions.php</code></td><td><code>EntityService.php</code></td></tr><tr><td>3</td><td>Faker, closure, винятки</td><td><code>public/lab3-demo.php</code></td><td><code>index.php</code></td></tr><tr><td>4</td><td>Алгоритми <strong>вар. 6</strong></td><td><code>app/Services/DataProcessor.php</code></td><td>той самий шлях</td></tr><tr><td>5</td><td>Faker</td><td><code>composer.json</code>, <code>composer.lock</code></td><td><code>composer require fakerphp/faker</code></td></tr></tbody></table></div>
+<p>PR &lt;a href=&quot;https://github.com/Al-Hav-ic/ci-cd-lab/pull/9&quot;&gt;#9&lt;/a&gt;, Issue &lt;a href=&quot;https://github.com/Al-Hav-ic/ci-cd-lab/issues/14&quot;&gt;#14&lt;/a&gt;. Детальна таблиця відповідності §3.2 методички — &lt;code&gt;lab3/REPORT.md&lt;/code&gt; §3.</p>
+<p>Локально: &lt;code&gt;php artisan serve&lt;/code&gt; → п&amp;#039;ять блоків на &lt;code&gt;/lab3-entity-array.php&lt;/code&gt; та &lt;code&gt;/lab3-demo.php&lt;/code&gt;.</p>
 <hr>
 </section>
 <section class="card" id="11-глосарій">
@@ -300,9 +301,9 @@ $faker-&gt;randomFloat(2, 150, 5000);</code></pre>
 <li>Чому після <code>array_filter</code> часто викликають <strong><code>array_values</code></strong>?</li>
 <li>Коли виконується блок <strong><code>finally</code></strong> — при успіху, при catch, чи в обох випадках?</li>
 <li>Навіщо комітити <strong><code>composer.lock</code></strong>, якщо є <code>composer.json</code>?</li>
-<li>Які три функції реалізує <strong>варіант 7</strong> у <code>DataProcessor.php</code>?</li>
-<li>Чому для <code>removeWordsOfLength</code> потрібен <strong><code>mb_strlen</code></strong>, а не <code>strlen</code>?</li>
-<li>Як <strong><code>digitsFirst</code></strong> класифікує символи Unicode-літер?</li>
+<li>Які три функції реалізує <strong>варіант 6</strong> у <code>DataProcessor.php</code>?</li>
+<li>Чому для <strong><code>countWordsWithEvenLength</code></strong> потрібен <strong><code>mb_strlen</code></strong>, а не <code>strlen</code>?</li>
+<li>Як <strong><code>swapFirstLastWord</code></strong> обробляє рядок з одним словом?</li>
 <li>Як <strong><code>EntityArray.php</code></strong> пов&#039;язаний з UML-класом Product?</li>
 <li>Чому <strong><code>vendor/</code></strong> не потрапляє в git?</li>
 <li>Що перевіряє <strong><code>./vendor/bin/pint --test</code></strong> у CI?</li>

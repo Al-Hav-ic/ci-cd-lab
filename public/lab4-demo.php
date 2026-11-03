@@ -7,15 +7,15 @@ require_once dirname(__DIR__).'/vendor/autoload.php';
 use App\Core\Database;
 use App\Core\EntityFactory;
 use App\Interfaces\ExportableInterface;
-use App\Models\Product;
+use App\Models\Product as CatalogProduct;
 use App\Services\ConsoleLogger;
 use App\Services\EntityService;
-use App\Tasks\Exam;
-use App\Tasks\FinalExam;
-use App\Tasks\Group;
-use App\Tasks\Rectangle;
+use App\Tasks\DepartmentHead;
+use App\Tasks\Product as StockProduct;
+use App\Tasks\Store;
 use App\Tasks\Student;
-use App\Tasks\Test;
+use App\Tasks\Teacher;
+use App\Tasks\Triangle;
 
 if (PHP_SAPI !== 'cli') {
     header('Content-Type: text/html; charset=UTF-8');
@@ -36,10 +36,10 @@ $factory = new EntityFactory;
 $product = $factory->createEntity('product', [
     'id' => '101',
     'createdAt' => '2026-11-01 10:00:00',
-    'name' => 'Ноутбук Lenovo IdeaPad 3',
-    'price' => 24999.50,
-    'stockQty' => 12,
-    'manufacturer' => 'Lenovo',
+    'name' => 'Молоко «Галичина» 2.5 % 900 мл',
+    'price' => 32.50,
+    'stockQty' => 48,
+    'manufacturer' => 'Галичина',
 ]);
 
 $customer = $factory->createEntity('customer', [
@@ -47,7 +47,7 @@ $customer = $factory->createEntity('customer', [
     'createdAt' => '2026-10-15 09:30:00',
     'fullName' => 'Олена Ковальчук',
     'email' => 'olena@example.com',
-    'role' => 'manager',
+    'role' => 'customer',
 ]);
 
 echo $product->getDetails().$eol;
@@ -62,30 +62,37 @@ echo "--- DI ---{$eol}";
 $service = new EntityService(new ConsoleLogger);
 $service->registerProduct($product);
 
-if ($product instanceof Product) {
+if ($product instanceof CatalogProduct) {
     $sum = $service->calculateLineTotal($product, 3, 5.0);
     echo 'Сума до сплати: '.number_format($sum, 2)." грн{$eol}{$eol}";
 }
 
-echo "--- Варіант 7 ---{$eol}";
+echo "--- Варіант 6 (табл. 4.2 №1, 4.3 №2, 4.4 №2) ---{$eol}";
 
-$group = new Group('g-1', 'КН-21');
-$group->addStudent(new Student('s-1', 'Іван', 'Петренко', '2005-03-14'));
-$group->addStudent(new Student('s-2', 'Марія', 'Іваненко', '2004-11-02'));
+$store = new Store('wh-01', 'Склад супермаркету №1');
+$store->addProduct(new StockProduct(1, 'Рис «Місто» 1 кг', 45.90));
+$store->addProduct(new StockProduct(2, 'Олія соняшникова 1 л', 62.00));
+$store->addProduct(new StockProduct(3, 'Молоко 2.5 % 900 мл', 32.50));
 
-echo 'У групі '.count($group->getStudents())." студентів{$eol}";
-$found = $group->searchStudent('петр');
-echo 'Пошук «петр»: '.($found[0]->getFullName() ?? 'нічого не знайдено').$eol;
+echo 'На складі «'.$store->getName().'»: '.count($store->getProducts())." позицій{$eol}";
+$found = $store->searchProduct('молок');
+echo 'Пошук «молок»: '.($found[0]->getName() ?? 'нічого').$eol;
+$store->removeProduct(2);
+echo 'Після removeProduct(2): '.count($store->getProducts())." позицій{$eol}";
 
-foreach ([new Test('Поточний тест'), new Exam('Модульний іспит'), new FinalExam('Випускний іспит')] as $trial) {
-    echo $trial->getTitle().': прохідний бал '.$trial->getPassingScore().$eol;
+foreach ([
+    new Student('Іван Петренко', 'КН-21'),
+    new Teacher('Марія Іваненко', 'КН-21', 'PHP'),
+    new DepartmentHead('Олексій Гавриленко', 'КН-21', 'ТРПЗ', 'Програмна інженерія'),
+] as $person) {
+    echo $person->getRoleDetails().$eol;
 }
 
-$rectangle = new Rectangle(4.0, 2.5);
-echo 'Прямокутник 4×2.5: периметр '.$rectangle->perimeter()
-    .', площа '.$rectangle->area().$eol;
+$triangle = new Triangle(3.0, 4.0, 5.0);
+echo 'Трикутник 3-4-5: периметр '.$triangle->perimeter()
+    .', площа '.round($triangle->area(), 4).$eol;
 
 if (PHP_SAPI !== 'cli') {
     echo '</pre>';
-    echo '<p><a href="/lab3-demo.php">Демо лаб. 3 (Faker, масиви)</a></p>';
+    echo '<p><a href="/lab3-demo.php">Демо лаб. 3</a></p>';
 }

@@ -3,22 +3,22 @@
 declare(strict_types=1);
 
 $categories = [
-    'Смартфони',
-    'Ноутбуки',
-    'Планшети',
-    'Аксесуари',
-    'Побутова техніка',
+    'М\'ясо та риба',
+    'Молочні продукти',
+    'Напої',
+    'Овочі та фрукти',
+    'Бакалія',
 ];
 
 sort($categories, SORT_STRING);
 
 $product = [
     'id' => 101,
-    'sku' => 'LP-001',
-    'name' => 'Ноутбук Lenovo IdeaPad 3',
-    'price' => 24999.50,
-    'stock_qty' => 12,
-    'manufacturer' => 'Lenovo',
+    'sku' => 'MLK-900-25',
+    'name' => 'Молоко «Галичина» 2.5 % 900 мл',
+    'price' => 32.50,
+    'stock_qty' => 48,
+    'manufacturer' => 'Галичина',
     'is_active' => true,
 ];
 ?>
@@ -48,6 +48,6 @@ $product = [
     <?php } ?>
 </ul>
 
-<p><a href="/">← На головну (index.php)</a></p>
+<p><a href="/lab3-demo.php">← Демо лаб. 3 (Faker, алгоритми)</a></p>
 </body>
 </html>

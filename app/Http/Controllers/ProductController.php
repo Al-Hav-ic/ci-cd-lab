@@ -15,24 +15,24 @@ class ProductController extends Controller
     private array $items = [
         [
             'id' => 1,
-            'name' => 'Ноутбук Lenovo IdeaPad 3',
-            'price' => 24999.50,
-            'stock_qty' => 12,
-            'manufacturer' => 'Lenovo',
+            'name' => 'Молоко «Галичина» 2.5 % 900 мл',
+            'price' => 32.50,
+            'stock_qty' => 48,
+            'manufacturer' => 'Галичина',
         ],
         [
             'id' => 2,
-            'name' => 'Смартфон Samsung Galaxy A55',
-            'price' => 15999.00,
-            'stock_qty' => 30,
-            'manufacturer' => 'Samsung',
+            'name' => 'Хліб «Київхліб» нарізаний',
+            'price' => 28.90,
+            'stock_qty' => 25,
+            'manufacturer' => 'Київхліб',
         ],
         [
             'id' => 3,
-            'name' => 'Мишка Logitech M330',
-            'price' => 1299.00,
+            'name' => 'Олія соняшникова «Олейна» 1 л',
+            'price' => 62.00,
             'stock_qty' => 0,
-            'manufacturer' => 'Logitech',
+            'manufacturer' => 'Олейна',
         ],
     ];
 

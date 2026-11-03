@@ -157,7 +157,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
   <div class="hero-in">
     <p class="eyebrow">Лабораторна робота №4 · Теорія</p>
     <h1>ООП в PHP: абстракції, трейти, Singleton, Factory, DI</h1>
-    <p>Доменні моделі Product/Customer, патерни проєктування, пакет App\Tasks (варіант 7) і демо lab4-demo.php.</p>
+    <p>Доменні моделі Product/Customer (супермаркет), патерни, App\Tasks варіант 6 і demo lab4-demo.php.</p>
     <div class="chips"><span class="chip">AbstractEntity</span><span class="chip">Factory</span><span class="chip">Singleton</span><span class="chip">DI</span><span class="chip">App\Tasks</span></div>
   </div>
 </header>
@@ -174,7 +174,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <li><a href="#6-патерн-singleton">Патерн Singleton</a></li>
 <li><a href="#7-патерн-factory">Патерн Factory</a></li>
 <li><a href="#8-dependency-injection-і-solid">Dependency Injection і SOLID</a></li>
-<li><a href="#9-пакет-apptasks-варіант-7">Пакет App\Tasks (варіант 7)</a></li>
+<li><a href="#9-пакет-apptasks-варіант-6">Пакет App\Tasks (варіант 6)</a></li>
 <li><a href="#10-psr-4-і-структура-каталогів">PSR-4 і структура каталогів</a></li>
 <li><a href="#11-як-усе-складається-в-лаб-4">Як усе складається в лаб. 4</a></li>
 <li><a href="#12-глосарій">Глосарій</a></li>
@@ -201,7 +201,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <strong>Інкапсуляція</strong> — приховування внутрішнього стану за модифікаторами доступу:
 <div class="tw"><table><thead><tr><th>Модифікатор</th><th>Доступ</th></tr></thead><tbody><tr><td><code>public</code></td><td>скрізь</td></tr><tr><td><code>protected</code></td><td>клас і нащадки</td></tr><tr><td><code>private</code></td><td>лише цей клас</td></tr></tbody></table></div>
 <strong>Constructor Property Promotion</strong> (PHP 8+): параметри конструктора одразу оголошують властивості — менше шаблонного коду в <code>Product</code>, <code>User</code>.
-<strong>Readonly</strong> (PHP 8.2+) — властивість задається один раз (наприклад, сторони <code>Rectangle</code> у <code>app/Tasks/Rectangle.php</code>).
+<strong>Readonly</strong> (PHP 8.2+) — властивість задається один раз (наприклад, можна застосувати до сторін у геометричних задачах; у вар. 6 <code>Triangle</code> зберігає сторони через конструктор).
 <hr>
 </section>
 <section class="card" id="3-наслідування-та-abstract-class">
@@ -260,10 +260,10 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <blockquote class="note">Процедурні функції лаб. 3 перенесено в <strong><code>EntityFunctions.php</code></strong>, щоб не конфліктувати з класом <code>EntityService</code>.</blockquote>
 <hr>
 </section>
-<section class="card" id="9-пакет-apptasks-варіант-7">
-<h2><span class="num">09</span>Пакет App\Tasks (варіант 7)</h2>
-<div class="tw"><table><thead><tr><th>Таблиця</th><th>№</th><th>Класи</th><th>Ідея</th></tr></thead><tbody><tr><td>4.2</td><td>2</td><td><code>Student</code>, <code>Group</code></td><td>композиція: група містить масив студентів, <code>searchStudent</code></td></tr><tr><td>4.3</td><td>5</td><td><code>Trial</code> → <code>Test</code> → <code>Exam</code> → <code>FinalExam</code></td><td><code>getPassingScore()</code> через <code>parent::</code> (50→60→80)</td></tr><tr><td>4.4</td><td>1</td><td><code>Rectangle</code></td><td><code>readonly</code> сторони, <code>perimeter()</code>, <code>area()</code></td></tr></tbody></table></div>
-<p>Файли: &lt;code&gt;app/Tasks/*.php&lt;/code&gt;, namespace &lt;code&gt;App\Tasks&lt;/code&gt;. Демонстрація — секція «Варіант 7» у &lt;code&gt;public/lab4-demo.php&lt;/code&gt;.</p>
+<section class="card" id="9-пакет-apptasks-варіант-6">
+<h2><span class="num">09</span>Пакет App\Tasks (варіант 6)</h2>
+<div class="tw"><table><thead><tr><th>Таблиця</th><th>№</th><th>Класи</th><th>Ідея</th></tr></thead><tbody><tr><td>4.2</td><td>1</td><td><code>Product</code>, <code>Store</code></td><td>склад: <code>addProduct</code>, <code>removeProduct</code>, <code>searchProduct</code></td></tr><tr><td>4.3</td><td>2</td><td><code>Person</code> → <code>Student</code> → <code>Teacher</code> → <code>DepartmentHead</code></td><td><code>getRoleDetails()</code> з <code>parent::</code></td></tr><tr><td>4.4</td><td>2</td><td><code>Triangle</code></td><td>периметр, площа (Герон), валідація нерівності трикутника</td></tr></tbody></table></div>
+<p>Файли: &lt;code&gt;app/Tasks/*.php&lt;/code&gt;. Демонстрація — секція «Варіант 6» у &lt;code&gt;public/lab4-demo.php&lt;/code&gt;. Не плутати &lt;strong&gt;&lt;code&gt;App\Tasks\Product&lt;/code&gt;&lt;/strong&gt; (склад) і &lt;strong&gt;&lt;code&gt;App\Models\Product&lt;/code&gt;&lt;/strong&gt; (каталог магазину).</p>
 <h3>8.1. SOLID у контексті лаб. 4 (коротко)</h3>
 <div class="tw"><table><thead><tr><th>Принцип</th><th>Приклад у репозиторії</th></tr></thead><tbody><tr><td><strong>S</strong> — Single Responsibility</td><td><code>EntityService</code> рахує суму; логер лише пише</td></tr><tr><td><strong>O</strong> — Open/Closed</td><td>новий тип у Factory через нову гілку <code>match</code>, без зміни клієнта</td></tr><tr><td><strong>L</strong> — Liskov Substitution</td><td>змінна <code>AbstractEntity</code> може тримати <code>Product</code> або <code>Customer</code></td></tr><tr><td><strong>I</strong> — Interface Segregation</td><td><code>LoggerInterface</code> — один метод <code>log</code>, без зайвих зобов&#039;язань</td></tr><tr><td><strong>D</strong> — Dependency Inversion</td><td>сервіс залежить від <code>LoggerInterface</code>, не від <code>FileLogger</code></td></tr></tbody></table></div>
 <p>Патерни &lt;strong&gt;не&lt;/strong&gt; мета сама по собі: Singleton у &lt;code&gt;Database&lt;/code&gt; — навчальна демонстрація; у production частіше реєструють PDO-сервіс у контейнері Laravel (лаб. 5+).</p>
@@ -276,7 +276,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 ├── Interfaces/    ExportableInterface, LoggerInterface
 ├── Models/        AbstractEntity, Product, Customer (+ Laravel Auth User окремо)
 ├── Services/      EntityService, ConsoleLogger, FileLogger, EntityFunctions
-├── Tasks/         Group, Student, Trial, …
+├── Tasks/         Store, Product (склад), Person, Triangle, …
 └── Traits/        JsonExportTrait</code></pre>
 <p>Ім&amp;#039;я файлу = ім&amp;#039;я класу. Autoload: &lt;code&gt;composer dump-autoload&lt;/code&gt; після додавання класів.</p>
 <hr>
@@ -297,7 +297,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 </section>
 <section class="card" id="12-глосарій">
 <h2><span class="num">12</span>Глосарій</h2>
-<div class="tw"><table><thead><tr><th>Термін</th><th>Визначення</th></tr></thead><tbody><tr><td><strong>Composition</strong></td><td>об&#039;єкт містить інші об&#039;єкти (<code>Group</code> → <code>Student</code>)</td></tr><tr><td><strong>Polymorphism</strong></td><td>змінна типу <code>AbstractEntity</code> посилається на <code>Product</code> або <code>Customer</code></td></tr><tr><td><strong>Stub / Mock</strong></td><td>підміна залежності в тестах</td></tr><tr><td><strong>final class</strong></td><td>заборона наслідування (<code>Database</code>, <code>EntityFactory</code>)</td></tr><tr><td><strong>UnhandledMatchError</strong></td><td><code>match</code> без збігу і без <code>default</code></td></tr><tr><td><strong>SOLID</strong></td><td>п&#039;ять принципів проєктування; у лаб. 4 акцент на D</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Термін</th><th>Визначення</th></tr></thead><tbody><tr><td><strong>Composition</strong></td><td>об&#039;єкт містить інші об&#039;єкти (<code>Store</code> → <code>Product</code>)</td></tr><tr><td><strong>Polymorphism</strong></td><td>змінна типу <code>AbstractEntity</code> посилається на <code>Product</code> або <code>Customer</code></td></tr><tr><td><strong>Stub / Mock</strong></td><td>підміна залежності в тестах</td></tr><tr><td><strong>final class</strong></td><td>заборона наслідування (<code>Database</code>, <code>EntityFactory</code>)</td></tr><tr><td><strong>UnhandledMatchError</strong></td><td><code>match</code> без збігу і без <code>default</code></td></tr><tr><td><strong>SOLID</strong></td><td>п&#039;ять принципів проєктування; у лаб. 4 акцент на D</td></tr></tbody></table></div>
 <hr>
 </section>
 <section class="card" id="13-питання-для-самоконтролю">
@@ -312,13 +312,13 @@ footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);fon
 <li>Чим <strong>DI через конструктор</strong> краще за <code>new FileLogger()</code> всередині сервісу?</li>
 <li>Навіщо <strong><code>final</code></strong> для <code>Database</code>?</li>
 <li>Як <strong><code>Exam</code></strong> обчислює прохідний бал відносно <strong><code>Test</code></strong>?</li>
-<li>Чим <strong>композиція</strong> <code>Group</code>–<code>Student</code> відрізняється від наслідування?</li>
-<li>Навіщо в <strong><code>Rectangle</code></strong> перевірка <code>$width &lt;= 0</code> у конструкторі?</li>
+<li>Чим <strong>композиція</strong> <code>Store</code>–<code>Product</code> відрізняється від наслідування <code>Person</code>–<code>Student</code>?</li>
+<li>Навіщо в <strong><code>Triangle</code></strong> перевірка нерівності трикутника в конструкторі?</li>
 <li>Що поверне <strong><code>instanceof ExportableInterface</code></strong> для <code>$product</code> з фабрики?</li>
 <li>Чому <strong><code>EntityFunctions.php</code></strong> окремо від класу <strong><code>EntityService</code></strong>?</li>
 <li>Як <strong><code>FileLogger</code></strong> створює каталог <code>storage/logs</code>?</li>
 <li>Що виводить <strong><code>lab4-demo.php</code></strong> у секції JSON export?</li>
-<li>Як пакет <strong><code>App\Tasks</code></strong> пов&#039;язаний із вимогами табл. 4.1 (варіант 7)?</li>
+<li>Як пакет <strong><code>App\Tasks</code></strong> пов&#039;язаний із вимогами табл. 4.1 (<strong>варіант 6</strong>)?</li>
 </ul>
 </ol>
 <hr>
