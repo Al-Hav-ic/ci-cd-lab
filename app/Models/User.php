@@ -1,34 +1,49 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
-class User extends AbstractEntity
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
 {
-    public function __construct(
-        string $id,
-        string $createdAt,
-        private string $fullName,
-        private string $email,
-        private string $role = 'customer',
-    ) {
-        parent::__construct($id, $createdAt);
-    }
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, Notifiable;
 
-    public function getDetails(): string
-    {
-        return sprintf(
-            'Користувач #%s: %s <%s>, роль — %s',
-            $this->id,
-            $this->fullName,
-            $this->email,
-            $this->role,
-        );
-    }
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
 
-    public function getEmail(): string
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
     {
-        return $this->email;
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
     }
 }

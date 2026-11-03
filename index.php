@@ -42,7 +42,7 @@ $product = $factory->createEntity('product', [
     'manufacturer' => 'Lenovo',
 ]);
 
-$user = $factory->createEntity('user', [
+$user = $factory->createEntity('customer', [
     'id' => 'u-1',
     'createdAt' => '2026-10-15 09:30:00',
     'fullName' => 'Олена Ковальчук',

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Models\AbstractEntity;
+use App\Models\Customer;
 use App\Models\Product;
-use App\Models\User;
 
 final class EntityFactory
 {
@@ -24,7 +24,7 @@ final class EntityFactory
                 (int) ($data['stockQty'] ?? 0),
                 (string) ($data['manufacturer'] ?? 'невідомо'),
             ),
-            'user' => new User(
+            'customer' => new Customer(
                 (string) ($data['id'] ?? uniqid('u_')),
                 (string) ($data['createdAt'] ?? date('Y-m-d H:i:s')),
                 (string) ($data['fullName'] ?? 'Без імені'),
