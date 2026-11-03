@@ -4,27 +4,29 @@ skinparam packageStyle rectangle
 skinparam defaultFontName Arial
 
 actor "Покупець" as Customer
-actor "Менеджер" as Manager
+actor "Касир" as Cashier
+actor "Менеджер залу" as Manager
 actor "Адміністратор" as Admin
-actor "Платіжний шлюз" as Gateway <<system>>
+actor "Платіжний термінал" as Terminal <<system>>
 
-Manager --|> Customer : узагальнення
+Cashier --|> Customer : узагальнення
+Manager --|> Cashier : узагальнення
 Admin --|> Manager : узагальнення
 
-rectangle "Інтернет-магазин" {
+rectangle "Супермаркет\n(продаж товарів)" {
   usecase "Переглянути каталог" as UC_Browse
   usecase "Знайти товар" as UC_Search
-  usecase "Знайти за категорією" as UC_SearchCat
+  usecase "Знайти за відділом" as UC_SearchCat
   usecase "Знайти за назвою" as UC_SearchName
   usecase "Додати товар у кошик" as UC_Cart
-  usecase "Оформити замовлення" as UC_Order
+  usecase "Оформити покупку" as UC_Order
   usecase "Розрахувати суму" as UC_Total
   usecase "Застосувати знижку" as UC_Discount
   usecase "Застосувати промокод" as UC_Promo
-  usecase "Оплатити замовлення" as UC_Pay
+  usecase "Оплатити покупку" as UC_Pay
   usecase "Надіслати підтвердження" as UC_Notify
-  usecase "Скасувати замовлення" as UC_Cancel
-  usecase "Обробити замовлення" as UC_Process
+  usecase "Скасувати покупку" as UC_Cancel
+  usecase "Обробити продаж" as UC_Process
   usecase "Керувати залишками" as UC_Stock
   usecase "Керувати каталогом" as UC_Catalog
   usecase "Керувати користувачами" as UC_Users
@@ -35,6 +37,8 @@ Customer --> UC_Browse
 Customer --> UC_Search
 Customer --> UC_Cart
 Customer --> UC_Order
+Cashier --> UC_Order
+Cashier --> UC_Pay
 Manager --> UC_Process
 Manager --> UC_Stock
 Admin --> UC_Catalog
@@ -54,5 +58,5 @@ UC_Promo ..> UC_Discount : <<extend>>
 UC_Cancel ..> UC_Order : <<extend>>
 UC_Catalog ..> UC_Search : <<extend>>
 
-UC_Pay --> Gateway
+UC_Pay --> Terminal
 @enduml
