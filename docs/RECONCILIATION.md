@@ -13,4 +13,4 @@
 
 **Демо:** `php artisan serve` → `/lab3-entity-array.php`, `/lab3-demo.php`, `/lab4-demo.php`, `/products`.
 
-Оновлено: PR `feature/reconcile-supermarket-variants` → `main`.
+Оновлено: PR [#18](https://github.com/Al-Hav-ic/ci-cd-lab/pull/18) → `main` (CI зелений; merge після 1 approval на GitHub).
