@@ -13,7 +13,7 @@ class CalculatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->calculator = new Calculator();
+        $this->calculator = new Calculator;
     }
 
     public function test_add_returns_sum(): void
