@@ -4,30 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tasks;
 
-final class Student
+class Student extends Person
 {
     public function __construct(
-        private string $id,
-        private string $name,
-        private string $surname,
-        private string $birthday,
-    ) {}
-
-    public function getId(): string
-    {
-        return $this->id;
+        string $fullName,
+        private string $groupName,
+    ) {
+        parent::__construct($fullName);
     }
 
-    public function getFullName(): string
+    public function getRoleDetails(): string
     {
-        return $this->name.' '.$this->surname;
-    }
-
-    public function matches(string $query): bool
-    {
-        $query = mb_strtolower($query);
-
-        return str_contains(mb_strtolower($this->name), $query)
-            || str_contains(mb_strtolower($this->surname), $query);
+        return parent::baseRoleLine('студент').", група {$this->groupName}";
     }
 }

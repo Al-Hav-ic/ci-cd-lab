@@ -11,8 +11,8 @@ class CartController extends Controller
     public function summary(): JsonResponse
     {
         $items = [
-            ['product_id' => 1, 'quantity' => 2, 'unit_price' => 24999.50],
-            ['product_id' => 3, 'quantity' => 1, 'unit_price' => 1299.00],
+            ['product_id' => 1, 'quantity' => 2, 'unit_price' => 32.50],
+            ['product_id' => 2, 'quantity' => 1, 'unit_price' => 28.90],
         ];
 
         $total = array_reduce(

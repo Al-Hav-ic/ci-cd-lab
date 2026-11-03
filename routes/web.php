@@ -10,7 +10,7 @@ Route::get('/', fn () => view('welcome'));
 
 Route::get('/health', fn () => response()->json([
     'status' => 'OK',
-    'service' => 'shop-api',
+    'service' => 'supermarket-api',
     'timestamp' => now()->toIso8601String(),
 ]));
 

@@ -12,10 +12,10 @@ class ProductAccessTest extends TestCase
      * @var array<string, mixed>
      */
     private array $payload = [
-        'name' => 'Ноутбук Dell XPS 15',
-        'price' => 45000,
-        'stock_qty' => 5,
-        'manufacturer' => 'Dell',
+        'name' => 'Сир Hollandia 45 % 150 г',
+        'price' => 89.90,
+        'stock_qty' => 15,
+        'manufacturer' => 'Hollandia',
     ];
 
     public function test_request_without_client_header_is_blocked_by_middleware(): void
@@ -36,8 +36,8 @@ class ProductAccessTest extends TestCase
 
         $response->assertStatus(201)
             ->assertHeader('X-Security-Policy', 'Enforced')
-            ->assertJsonPath('data.name', 'Ноутбук Dell XPS 15')
-            ->assertJsonPath('data.price', 45000);
+            ->assertJsonPath('data.name', 'Сир Hollandia 45 % 150 г')
+            ->assertJsonPath('data.price', 89.9);
     }
 
     public function test_index_returns_product_list(): void

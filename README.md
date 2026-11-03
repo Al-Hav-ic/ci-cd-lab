@@ -26,7 +26,7 @@
 
 Демо скриптів лаб. 3–4 при `php artisan serve`: `/lab3-demo.php`, `/lab3-entity-array.php`, `/lab4-demo.php`.
 
-Traceability Issues ↔ PR: [`docs/labs-traceability.md`](docs/labs-traceability.md).
+Traceability Issues ↔ PR: [`docs/labs-traceability.md`](docs/labs-traceability.md). Звірка теми та варіантів лаб. 2–5: [`docs/RECONCILIATION.md`](docs/RECONCILIATION.md).
 
 ## Процес роботи (реліз і захист `main`)
 

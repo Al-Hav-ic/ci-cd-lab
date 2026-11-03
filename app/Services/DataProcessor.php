@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Табл. 3.2, № 3: впорядкувати цілочисловий масив за спаданням.
+ * Варіант 6 — табл. 3.2, № 3: впорядкувати цілочисловий масив за спаданням.
  *
  * @param  array<int, int|float>  $numbers
  * @return array<int, int|float>
@@ -21,43 +21,35 @@ function sortDescending(array $numbers): array
 }
 
 /**
- * Табл. 3.3, № 2: видалити слова довжиною від $minLength до $maxLength.
+ * Варіант 6 — табл. 3.3, № 4: поміняти місцями перше і останнє слово.
  */
-function removeWordsOfLength(string $text, int $minLength, int $maxLength): string
+function swapFirstLastWord(string $text): string
 {
-    if ($minLength < 1 || $maxLength < $minLength) {
-        throw new InvalidArgumentException('Некоректний діапазон довжин слів.');
-    }
-
     $words = preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
-    $filtered = array_filter(
-        $words,
-        static fn (string $word): bool => mb_strlen($word, 'UTF-8') < $minLength
-            || mb_strlen($word, 'UTF-8') > $maxLength
-    );
+    if (count($words) < 2) {
+        return trim($text);
+    }
 
-    return implode(' ', $filtered);
+    $lastIndex = count($words) - 1;
+    [$words[0], $words[$lastIndex]] = [$words[$lastIndex], $words[0]];
+
+    return implode(' ', $words);
 }
 
 /**
- * Табл. 3.4, № 7: спочатку цифри, потім літери, інші символи — в кінці.
+ * Варіант 6 — табл. 3.4, № 5: кількість слів із парною кількістю символів.
  */
-function digitsFirst(string $input): string
+function countWordsWithEvenLength(string $text): int
 {
-    $digits = '';
-    $letters = '';
-    $others = '';
+    $words = preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $count = 0;
 
-    foreach (mb_str_split($input, 1, 'UTF-8') as $char) {
-        if (preg_match('/^\d$/u', $char) === 1) {
-            $digits .= $char;
-        } elseif (preg_match('/^\p{L}$/u', $char) === 1) {
-            $letters .= $char;
-        } else {
-            $others .= $char;
+    foreach ($words as $word) {
+        if (mb_strlen($word, 'UTF-8') % 2 === 0) {
+            $count++;
         }
     }
 
-    return $digits.$letters.$others;
+    return $count;
 }
