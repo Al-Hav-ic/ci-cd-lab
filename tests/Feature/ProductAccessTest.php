@@ -61,7 +61,9 @@ class ProductAccessTest extends TestCase
 
     public function test_index_returns_product_list(): void
     {
-        Product::factory()->count(3)->create();
+        // Каталог за замовчуванням показує лише активні товари (active_only=true),
+        // тому фіксуємо стан, щоб тест не залежав від випадкового is_active у фабриці.
+        Product::factory()->count(3)->create(['is_active' => true]);
 
         $this->getJson('/products')
             ->assertStatus(200)
