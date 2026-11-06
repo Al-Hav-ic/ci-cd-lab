@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core;
 
-use App\Models\AbstractEntity;
-use App\Models\Customer;
-use App\Models\Product;
+use App\Domain\AbstractEntity;
+use App\Domain\Customer;
+use App\Domain\Product;
 
 final class EntityFactory
 {

@@ -6,8 +6,8 @@ require_once dirname(__DIR__).'/vendor/autoload.php';
 
 use App\Core\Database;
 use App\Core\EntityFactory;
+use App\Domain\Product as CatalogProduct;
 use App\Interfaces\ExportableInterface;
-use App\Models\Product as CatalogProduct;
 use App\Services\ConsoleLogger;
 use App\Services\EntityService;
 use App\Tasks\DepartmentHead;

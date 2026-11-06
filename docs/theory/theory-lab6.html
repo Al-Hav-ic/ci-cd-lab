@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЛР №6 — теорія: Eloquent, міграції, зв’язки</title>
+<style>
+
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1b2027; --muted:#5a6472;
+  --line:#e2e6ec; --accent:#2f6feb; --accent-soft:#eaf1fe;
+  --green:#18794e; --green-soft:#e8f6ee; --amber:#8a5a00; --amber-soft:#fdf3e0;
+  --red:#b42318; --red-soft:#fdecea; --violet:#6b3fa0; --violet-soft:#f2ecfa;
+  --code-bg:#101827; --code-text:#e7eef9; --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px -16px rgba(16,24,40,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+a{color:var(--accent)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#16233f 0%,#2f6feb 58%,#4f9cf9 100%);color:#fff;padding:42px 22px 36px}
+.hero-in{max-width:1180px;margin:0 auto}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);line-height:1.18;letter-spacing:-.02em}
+.hero p{margin:0;max-width:80ch;font-size:16.5px;opacity:.94}
+.chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#fff}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:30px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:18px}}
+
+/* toc */
+.toc{position:sticky;top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);max-height:calc(100vh - 36px);overflow:auto}
+@media(max-width:960px){.toc{position:static;max-height:none}}
+.toc h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.toc ol{margin:0;padding-left:18px;font-size:14px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none;color:#33404f}
+.toc a:hover{color:var(--accent)}
+.toc .sep{height:1px;background:var(--line);margin:12px 0;list-style:none}
+
+/* typography */
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;margin:0 0 22px;box-shadow:var(--shadow)}
+@media(max-width:600px){section.card{padding:20px 16px}}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:17.5px;margin:26px 0 8px}
+h4{font-size:15px;margin:20px 0 6px;color:#2a3442}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+.small{font-size:13.5px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:11px;
+  overflow:auto;font-size:13.2px;line-height:1.6;margin:12px 0;border:1px solid #1d2b45}
+pre .c{color:#8fa4c4} /* comment-ish not used automatically */
+:not(pre)>code{background:#eef1f6;border:1px solid #e2e7ef;border-radius:6px;
+  padding:1px 6px;font-size:13.4px;color:#243044;white-space:nowrap}
+
+/* tables */
+.tw{overflow:auto;margin:14px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f3f6fb;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#425063}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafcff}
+
+/* callouts */
+.note,.warn,.ok,.danger{border-radius:11px;padding:13px 16px;margin:14px 0;font-size:14.5px;
+  border:1px solid;border-left-width:4px}
+.note{background:var(--accent-soft);border-color:#c8dbfb;border-left-color:var(--accent)}
+.warn{background:var(--amber-soft);border-color:#f3ddb3;border-left-color:#c98a00}
+.ok{background:var(--green-soft);border-color:#bfe6d0;border-left-color:var(--green)}
+.danger{background:var(--red-soft);border-color:#f6cfca;border-left-color:var(--red)}
+.note b,.warn b,.ok b,.danger b{display:block;margin-bottom:2px}
+
+/* diagram */
+.flow{display:grid;gap:10px;margin:16px 0}
+.flow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.node{flex:1 1 150px;background:#f7f9fd;border:1px solid #d9e2f1;border-radius:10px;
+  padding:10px 12px;font-size:13.2px;line-height:1.45}
+.node b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:3px}
+.node.red{background:var(--red-soft);border-color:#f0c7c1}
+.node.red b{color:var(--red)}
+.node.green{background:var(--green-soft);border-color:#b9e2c9}
+.node.green b{color:var(--green)}
+.arrow{flex:0 0 auto;align-self:center;color:#9aa7b8;font-size:18px}
+
+/* timeline */
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:#dbe5f5}
+.steps li:last-child::after{display:none}
+
+/* questions */
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 6px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.b-easy{background:var(--green-soft);border-color:#b9e2c9;color:var(--green)}
+.b-mid{background:var(--amber-soft);border-color:#f0d9ac;color:var(--amber)}
+.b-hard{background:var(--violet-soft);border-color:#dcccf2;color:var(--violet)}
+.qcount{font-size:13px;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:11px;padding:0;margin:10px 0;background:#fcfdff;overflow:hidden}
+details.qa summary{cursor:pointer;list-style:none;padding:13px 16px 13px 42px;position:relative;
+  font-weight:600;font-size:15px;line-height:1.45}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa summary::before{content:"+";position:absolute;left:14px;top:11px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:5px;background:#e9eefb;
+  color:var(--accent);font-weight:700;font-size:15px}
+details.qa[open] summary::before{content:"–"}
+details.qa summary:hover{background:#f2f6ff}
+.qa .ans{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14.6px;background:#fff}
+.qa .ans p:first-child{margin-top:10px}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.btn{appearance:none;border:1px solid #cdd8ea;background:#fff;color:#25324a;border-radius:9px;
+  padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{background:#f2f6ff;border-color:#b6c8e6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#255fce}
+
+/* footer */
+footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);font-size:13.5px}
+.top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 8px 20px -6px rgba(47,111,235,.6);font-size:18px}
+
+@media print{
+  .toc,.top,.qbar,.hero{position:static}
+  body{background:#fff}
+  section.card{box-shadow:none;border:0;padding:0;margin:0 0 8px;page-break-inside:auto}
+  details.qa{page-break-inside:avoid}
+  details.qa .ans{display:block!important}
+}
+
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">Лабораторна робота №6 · Теорія</p>
+    <h1>Бази даних у Laravel: міграції, Eloquent, зв’язки 1:1, 1:M, M:M</h1>
+    <p>Схема БД супермаркету, 12 міграцій, 11 моделей Eloquent, pivot discount_order, фабрики й сідери, тести та CI з SQLite.</p>
+    <div class="chips"><span class="chip">migrations</span><span class="chip">Eloquent</span><span class="chip">1:1 · 1:M · M:M</span><span class="chip">Factories</span><span class="chip">SQLite</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="toc">
+    <h2>Зміст</h2>
+    <ol>
+<li><a href="#1-навіщо-orm-eloquent-у-laravel">Навіщо ORM: Eloquent у Laravel</a></li>
+<li><a href="#2-підключення-бази-даних">Підключення бази даних</a></li>
+<li><a href="#3-міграції">Міграції</a></li>
+<li><a href="#4-моделі-eloquent">Моделі Eloquent</a></li>
+<li><a href="#5-crud-через-eloquent">CRUD через Eloquent</a></li>
+<li><a href="#6-звязки-11-1m-mm">Зв&#039;язки 1:1, 1:M, M:M</a></li>
+<li><a href="#7-жадібне-завантаження-і-проблема-n1">Жадібне завантаження і проблема N+1</a></li>
+<li><a href="#8-фабрики-сідери-faker">Фабрики, сідери, Faker</a></li>
+<li><a href="#9-цілісність-даних-і-транзакції">Цілісність даних і транзакції</a></li>
+<li><a href="#10-тестування-бд-і-ci">Тестування БД і CI</a></li>
+<li><a href="#11-узгодження-з-uml-і-лаб-25">Узгодження з UML і лаб. 2–5</a></li>
+<li><a href="#12-як-усе-складається-в-лаб-6">Як усе складається в лаб. 6</a></li>
+<li><a href="#13-глосарій">Глосарій</a></li>
+<li><a href="#14-питання-для-самоконтролю">Питання для самоконтролю</a></li>
+<li><a href="#15-відповіді">Відповіді</a></li>
+    </ol>
+    <p class="small" style="margin-top:14px">Репозиторій: <a href="https://github.com/Al-Hav-ic/ci-cd-lab">Al-Hav-ic/ci-cd-lab</a></p>
+  </aside>
+
+  <main>
+<section class="card" id="1-навіщо-orm-eloquent-у-laravel">
+<h2><span class="num">01</span>Навіщо ORM: Eloquent у Laravel</h2>
+<strong>ORM</strong> (Object-Relational Mapping) — шар, який зіставляє таблиці БД з об&#039;єктами мови програмування. Замість ручного <code>SELECT * FROM products WHERE id = ?</code> і складання масиву розробник пише <code>Product::find($id)</code> й отримує об&#039;єкт із методами та зв&#039;язками.
+<strong>Eloquent</strong> — вбудована ORM Laravel. Її робота будується на трьох ідеях:
+<ol>
+<ul>
+<li><strong>Модель = таблиця.</strong> Клас <code>Product</code> за замовчуванням відповідає таблиці <code>products</code> (snake_case, множина).</li>
+<li><strong>Об&#039;єкт = рядок.</strong> Екземпляр моделі містить атрибути одного рядка; <code>$product-&gt;price</code> читає колонку <code>price</code>.</li>
+<li><strong>Зв&#039;язок = метод.</strong> <code>$product-&gt;category</code> повертає об&#039;єкт <code>Category</code>, а не просто число <code>category_id</code>.</li>
+</ul>
+</ol>
+<p>Порівняння підходів:</p>
+<div class="tw"><table><thead><tr><th>Підхід</th><th>Приклад</th><th>Плюси</th><th>Мінуси</th></tr></thead><tbody><tr><td>Сирий SQL</td><td><code>$pdo-&gt;query(&#039;SELECT ...&#039;)</code></td><td>повний контроль</td><td>ручне екранування, багато коду</td></tr><tr><td>Query Builder</td><td><code>DB::table(&#039;products&#039;)-&gt;where(...)</code></td><td>безпечні параметри</td><td>немає об&#039;єктів і зв&#039;язків</td></tr><tr><td>Eloquent</td><td><code>Product::with(&#039;category&#039;)-&gt;find($id)</code></td><td>об&#039;єкти, зв&#039;язки, події, casts</td><td>«магія», потрібно стежити за N+1</td></tr></tbody></table></div>
+<p>У лаб. 5 контролери повертали масиви з пам&amp;#039;яті: після завершення запиту дані зникали. У лаб. 6 Eloquent зберігає їх у БД, тому &lt;code&gt;GET&lt;/code&gt; після &lt;code&gt;POST&lt;/code&gt; бачить створений товар.</p>
+<blockquote class="note"><strong>Важливо:</strong> ORM не скасовує знання SQL. Складні звіти, <code>EXPLAIN</code>, індекси й транзакції все одно проєктуються на рівні БД.</blockquote>
+<hr>
+</section>
+<section class="card" id="2-підключення-бази-даних">
+<h2><span class="num">02</span>Підключення бази даних</h2>
+<p>Конфігурація — у &lt;code&gt;config/database.php&lt;/code&gt;, значення — у &lt;code&gt;.env&lt;/code&gt;:</p>
+<pre><code>DB_CONNECTION=sqlite
+# Для MySQL:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=ci_cd_lab
+# DB_USERNAME=root
+# DB_PASSWORD=</code></pre>
+<p>Laravel підтримує SQLite, MySQL/MariaDB, PostgreSQL, SQL Server. У лабораторній використано &lt;strong&gt;SQLite&lt;/strong&gt;:</p>
+<ol>
+<ul>
+<li>нульове налаштування — достатньо файлу <code>database/database.sqlite</code>;</li>
+<li>той самий драйвер у GitHub Actions, тому локальний і CI-прогін ідентичні;</li>
+<li>обмеження: частина <code>ALTER TABLE</code> операцій відрізняється від MySQL, тому міграції пишуться обережно.</li>
+</ul>
+</ol>
+<p>Перевірка підключення:</p>
+<pre><code>php artisan db:show
+php artisan migrate:status</code></pre>
+<p>Якщо файлу немає, його створюють заздалегідь:</p>
+<pre><code>php -r &quot;file_exists(&#039;database/database.sqlite&#039;) || touch(&#039;database/database.sqlite&#039;);&quot;</code></pre>
+<hr>
+</section>
+<section class="card" id="3-міграції">
+<h2><span class="num">03</span>Міграції</h2>
+<strong>Міграція</strong> — PHP-клас, який описує зміну схеми: створення таблиці, додавання колонки, індексу тощо. Міграції виконуються по черзі й фіксуються в службовій таблиці <code>migrations</code>, тому Laravel знає, що вже застосовано.
+<h3>3.1. Створення та запуск</h3>
+<pre><code>php artisan make:migration create_products_table
+php artisan migrate
+php artisan migrate:status
+php artisan migrate:rollback
+php artisan migrate:fresh --seed</code></pre>
+<ol>
+<ul>
+<li><code>migrate</code> — застосувати нові міграції;</li>
+<li><code>migrate:status</code> — показати, які виконані (<code>Ran</code>), а які ні (<code>Pending</code>);</li>
+<li><code>migrate:rollback</code> — відкотити останній батч;</li>
+<li><code>migrate:fresh</code> — видалити всі таблиці й виконати міграції з нуля;</li>
+<li><code>--seed</code> — після міграцій запустити <code>DatabaseSeeder</code>;</li>
+<li><code>migrate --force</code> — запуск у production/CI без інтерактивного підтвердження.</li>
+<h3>3.2. Структура міграції</h3>
+<pre><code>public function up(): void
+{
+    Schema::create(&#039;products&#039;, function (Blueprint $table) {
+        $table-&gt;id();
+        $table-&gt;foreignId(&#039;category_id&#039;)-&gt;constrained()-&gt;cascadeOnDelete();
+        $table-&gt;string(&#039;sku&#039;)-&gt;unique();
+        $table-&gt;string(&#039;name&#039;);
+        $table-&gt;decimal(&#039;price&#039;, 10, 2);
+        $table-&gt;unsignedInteger(&#039;stock_qty&#039;)-&gt;default(0);
+        $table-&gt;boolean(&#039;is_active&#039;)-&gt;default(true);
+        $table-&gt;timestamps();
+<p>$table-&amp;gt;index([&amp;#039;is_active&amp;#039;, &amp;#039;price&amp;#039;]);
+    });
+}</p>
+<p>public function down(): void
+{
+    Schema::dropIfExists(&amp;#039;products&amp;#039;);
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<code>up()</code> описує пряму зміну, <code>down()</code> — зворотну. Добре написана міграція дозволяє відкотитися без втрати інших таблиць.
+<h3>3.3. Типи колонок і ключі</h3>
+<div class="tw"><table><thead><tr><th>Метод</th><th>Призначення</th></tr></thead><tbody><tr><td><code>$table-&gt;id()</code></td><td><code>BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY</code></td></tr><tr><td><code>$table-&gt;foreignId(&#039;x&#039;)-&gt;constrained()</code></td><td>FK на <code>x_id</code> → таблицю, визначену за іменем</td></tr><tr><td><code>$table-&gt;string(&#039;name&#039;, 255)</code></td><td><code>VARCHAR</code></td></tr><tr><td><code>$table-&gt;text(&#039;description&#039;)-&gt;nullable()</code></td><td>текст, дозволяє <code>NULL</code></td></tr><tr><td><code>$table-&gt;decimal(&#039;price&#039;, 10, 2)</code></td><td>гроші з двома знаками після коми</td></tr><tr><td><code>$table-&gt;boolean(&#039;is_active&#039;)-&gt;default(true)</code></td><td>прапорець</td></tr><tr><td><code>$table-&gt;timestamps()</code></td><td><code>created_at</code>, <code>updated_at</code></td></tr><tr><td><code>$table-&gt;unique([...])</code></td><td>складений унікальний індекс</td></tr><tr><td><code>$table-&gt;index([...])</code></td><td>звичайний індекс</td></tr></tbody></table></div>
+<h3>3.4. Порядок і залежності</h3>
+<p>Таблиця з зовнішнім ключем має створюватися &lt;strong&gt;після&lt;/strong&gt; батьківської. Саме тому в лаб. 6 спочатку йдуть &lt;code&gt;categories&lt;/code&gt;, &lt;code&gt;users&lt;/code&gt;, потім &lt;code&gt;products&lt;/code&gt;, &lt;code&gt;customers&lt;/code&gt;, а вже потім &lt;code&gt;orders&lt;/code&gt;, &lt;code&gt;order_items&lt;/code&gt;, &lt;code&gt;payments&lt;/code&gt;, &lt;code&gt;discount_order&lt;/code&gt;. Інакше SQLite/MySQL не зможе створити FK.</p>
+<p>Для зв&amp;#039;язку 1:1 унікальність забезпечує &lt;code&gt;-&amp;gt;unique()&lt;/code&gt; на зовнішньому ключі:</p>
+<pre><code>$table-&gt;foreignId(&#039;user_id&#039;)-&gt;unique()-&gt;constrained()-&gt;cascadeOnDelete();</code></pre>
+<h3>3.5. Каскади</h3>
+<li><code>cascadeOnDelete()</code> — видалення батька видаляє дітей (замовлення → позиції, замовлення → платіж, pivot-рядки).</li>
+<li><code>nullOnDelete()</code> — видалення батька обнуляє FK (категорія → підкатегорія, якщо не хочемо втрачати дерево).</li>
+<li><code>restrictOnDelete()</code> — забороняє видалення, поки є залежні рядки.</li>
+</ul>
+</ol>
+<p>Вибір каскаду — бізнес-рішення, а не технічне: не можна допустити «сирітських» позицій замовлення.</p>
+<hr>
+</section>
+<section class="card" id="4-моделі-eloquent">
+<h2><span class="num">04</span>Моделі Eloquent</h2>
+<h3>4.1. Угоди та налаштування</h3>
+<pre><code>class Product extends Model
+{
+    use HasFactory;
+<p>protected $fillable = [
+        &amp;#039;category_id&amp;#039;, &amp;#039;sku&amp;#039;, &amp;#039;name&amp;#039;, &amp;#039;description&amp;#039;,
+        &amp;#039;price&amp;#039;, &amp;#039;stock_qty&amp;#039;, &amp;#039;is_active&amp;#039;,
+    ];</p>
+<p>protected $casts = [
+        &amp;#039;price&amp;#039; =&amp;gt; &amp;#039;float&amp;#039;,
+        &amp;#039;stock_qty&amp;#039; =&amp;gt; &amp;#039;integer&amp;#039;,
+        &amp;#039;is_active&amp;#039; =&amp;gt; &amp;#039;boolean&amp;#039;,
+    ];
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<ol>
+<ul>
+<li><code>$fillable</code> — «білий список» полів для <code>create()</code> / <code>fill()</code>. Захищає від масового запису службових полів (<code>id</code>, <code>role</code>).</li>
+<li><code>$guarded</code> — протилежність; у навчальному коді краще явний <code>$fillable</code>.</li>
+<li><code>$casts</code> — перетворення типів під час читання/запису: <code>decimal</code> приходить як рядок, тому <code>float</code>; <code>0/1</code> → <code>bool</code>; дата → <code>Carbon</code>.</li>
+<li><code>$table</code> — задається лише якщо ім&#039;я таблиці не збігається з угодою (<code>products</code>).</li>
+<li><code>$primaryKey</code>, <code>$incrementing</code>, <code>$keyType</code> — для нестандартних ключів.</li>
+<li><code>$timestamps = false</code> — вимкнути <code>created_at</code>/<code>updated_at</code>.</li>
+<li><code>$hidden</code> — приховати поля з JSON (наприклад, <code>password</code>).</li>
+</ul>
+</ol>
+<h3>4.2. Route model binding</h3>
+<pre><code>public function show(Product $product): JsonResponse
+{
+    $product-&gt;load(&#039;category&#039;);
+    return response()-&gt;json([&#039;status&#039; =&gt; &#039;success&#039;, &#039;data&#039; =&gt; $product]);
+}</code></pre>
+<p>Laravel сам викликає &lt;code&gt;Product::findOrFail($id)&lt;/code&gt; за значенням &lt;code&gt;{product}&lt;/code&gt; з маршруту. Якщо запису немає — генерується &lt;code&gt;ModelNotFoundException&lt;/code&gt;, який перетворюється на &lt;strong&gt;404&lt;/strong&gt;. Це прибирає ручні перевірки &lt;code&gt;if (! $product)&lt;/code&gt;.</p>
+<h3>4.3. Магія <code>new</code> vs <code>create</code></h3>
+<pre><code>$cat = new Category([&#039;name&#039; =&gt; &#039;Периферія&#039;, &#039;slug&#039; =&gt; &#039;periphery&#039;]);
+$cat-&gt;id;        // null — рядка ще немає
+$cat-&gt;save();    // INSERT
+$cat-&gt;id;        // 6 — Eloquent присвоїв ключ
+<p>$cat2 = Category::create([...]); // new + save в один виклик&lt;/code&gt;&lt;/pre&gt;</p>
+<code>create()</code> використовує <code>$fillable</code>; якщо поле не вказане у списку, воно буде проігнороване.
+<hr>
+</section>
+<section class="card" id="5-crud-через-eloquent">
+<h2><span class="num">05</span>CRUD через Eloquent</h2>
+<div class="tw"><table><thead><tr><th>Операція</th><th>Код</th></tr></thead><tbody><tr><td>Створити</td><td><code>Product::create($data)</code></td></tr><tr><td>Знайти</td><td><code>Product::find($id)</code>, <code>Product::findOrFail($id)</code></td></tr><tr><td>Умова</td><td><code>Product::where(&#039;is_active&#039;, true)-&gt;get()</code></td></tr><tr><td>Перший</td><td><code>Product::where(...)-&gt;first()</code></td></tr><tr><td>Оновити</td><td><code>$product-&gt;update($data)</code></td></tr><tr><td>Видалити</td><td><code>$product-&gt;delete()</code></td></tr><tr><td>Кількість</td><td><code>Product::count()</code></td></tr><tr><td>Пагінація</td><td><code>Product::paginate(15)</code></td></tr><tr><td>Агрегація</td><td><code>Order::sum(&#039;total_amount&#039;)</code></td></tr><tr><td>Сире</td><td><code>Product::whereRaw(&#039;price &gt; ?&#039;, [100])</code></td></tr></tbody></table></div>
+<p>Побудова запиту — «ланцюжок»:</p>
+<pre><code>$products = Product::query()
+    -&gt;with([&#039;category:id,name,slug&#039;, &#039;reviews:id,product_id,rating&#039;])
+    -&gt;when($request-&gt;filled(&#039;category_id&#039;),
+        fn ($q) =&gt; $q-&gt;where(&#039;category_id&#039;, $request-&gt;integer(&#039;category_id&#039;)))
+    -&gt;when($request-&gt;filled(&#039;search&#039;),
+        fn ($q) =&gt; $q-&gt;where(&#039;name&#039;, &#039;like&#039;, &#039;%&#039;.$request-&gt;string(&#039;search&#039;).&#039;%&#039;))
+    -&gt;when($request-&gt;boolean(&#039;active_only&#039;, true),
+        fn ($q) =&gt; $q-&gt;where(&#039;is_active&#039;, true))
+    -&gt;orderBy(&#039;name&#039;)
+    -&gt;paginate(15);</code></pre>
+<code>when()</code> виконує замикання лише тоді, коли умова істинна, — це акуратніше за <code>if</code> навколо кожного <code>where</code>.
+<hr>
+</section>
+<section class="card" id="6-звязки-11-1m-mm">
+<h2><span class="num">06</span>Зв&#039;язки 1:1, 1:M, M:M</h2>
+<h3>6.1. Один-до-одного (1:1)</h3>
+<p>Приклад: користувач має один профіль покупця.</p>
+<pre><code>// User
+public function customer(): HasOne
+{
+    return $this-&gt;hasOne(Customer::class);
+}
+<p>// Customer
+public function user(): BelongsTo
+{
+    return $this-&amp;gt;belongsTo(User::class);
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<p>У БД це &lt;code&gt;customers.user_id&lt;/code&gt; з &lt;code&gt;UNIQUE&lt;/code&gt;. Без унікальності це вже був би 1:M (багато профілів на одного користувача).</p>
+<p>Другий приклад — &lt;code&gt;Order&lt;/code&gt; ↔ &lt;code&gt;Payment&lt;/code&gt;: &lt;code&gt;payments.order_id&lt;/code&gt; унікальний, &lt;code&gt;Order::payment(): HasOne&lt;/code&gt;, &lt;code&gt;Payment::order(): BelongsTo&lt;/code&gt;.</p>
+<h3>6.2. Один-до-багатьох (1:M)</h3>
+<pre><code>// Category
+public function products(): HasMany
+{
+    return $this-&gt;hasMany(Product::class);
+}
+<p>// Product
+public function category(): BelongsTo
+{
+    return $this-&amp;gt;belongsTo(Category::class);
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<code>HasMany</code> — на боці «один», <code>BelongsTo</code> — на боці «багато» (там, де зберігається FK). Метод <code>belongsTo</code> завжди живе в моделі, яка містить <code>*_id</code>.
+<p>Створення дочірнього запису через зв&amp;#039;язок автоматично підставляє FK:</p>
+<pre><code>$product = $category-&gt;products()-&gt;create([
+    &#039;name&#039; =&gt; &#039;Бездротова клавіатура&#039;,
+    &#039;sku&#039; =&gt; &#039;KB-PERIPH-01&#039;,
+    &#039;price&#039; =&gt; 1450.00,
+    &#039;stock_qty&#039; =&gt; 15,
+]);
+// $product-&gt;category_id === $category-&gt;id</code></pre>
+<h3>6.3. Багато-до-багатьох (M:M)</h3>
+<p>Потрібна проміжна (pivot) таблиця. У лаб. 6 — &lt;code&gt;discount_order&lt;/code&gt;:</p>
+<pre><code>// Order
+public function discounts(): BelongsToMany
+{
+    return $this-&gt;belongsToMany(Discount::class)-&gt;withTimestamps();
+}
+<p>// Discount
+public function orders(): BelongsToMany
+{
+    return $this-&amp;gt;belongsToMany(Order::class)-&amp;gt;withTimestamps();
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Ім&amp;#039;я таблиці Laravel будує з імен моделей в алфавітному порядку: &lt;code&gt;discount&lt;/code&gt; + &lt;code&gt;order&lt;/code&gt; → &lt;code&gt;discount_order&lt;/code&gt;. Якщо таблиця називається інакше, її передають другим аргументом: &lt;code&gt;belongsToMany(Discount::class, &amp;#039;order_discount&amp;#039;)&lt;/code&gt;.</p>
+<p>Основні операції:</p>
+<div class="tw"><table><thead><tr><th>Метод</th><th>Дія</th></tr></thead><tbody><tr><td><code>attach($id)</code></td><td>додати зв&#039;язок (дублікат викличе помилку UNIQUE)</td></tr><tr><td><code>detach($id)</code></td><td>видалити один зв&#039;язок</td></tr><tr><td><code>sync([$ids])</code></td><td>зробити набір зв&#039;язків рівним переданому (додає й видаляє)</td></tr><tr><td><code>syncWithoutDetaching([$ids])</code></td><td>додати лише відсутні</td></tr><tr><td><code>toggle([$ids])</code></td><td>перемкнути наявність</td></tr><tr><td><code>pivot</code></td><td>доступ до полів проміжної таблиці</td></tr></tbody></table></div>
+<code>sync()</code> — ключовий метод для редагування: він не чіпає наявні зв&#039;язки, які є в новому списку, видаляє зайві й додає нові. Саме тому <code>PUT /orders/{id}/discounts</code> викликає <code>$order-&gt;discounts()-&gt;sync($ids)</code>.
+<pre><code>$order-&gt;discounts()-&gt;attach([1, 2]);
+$order-&gt;discounts()-&gt;sync([1]);       // знижка 2 зникла
+$order-&gt;discounts()-&gt;pluck(&#039;code&#039;);   // [&#039;SAVE-2216&#039;]</code></pre>
+<h3>6.4. Самопосилання</h3>
+<p>Категорії утворюють дерево:</p>
+<pre><code>public function parent(): BelongsTo
+{
+    return $this-&gt;belongsTo(self::class, &#039;parent_id&#039;);
+}
+<p>public function children(): HasMany
+{
+    return $this-&amp;gt;hasMany(self::class, &amp;#039;parent_id&amp;#039;);
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Без явного &lt;code&gt;parent_id&lt;/code&gt; Laravel шукав би &lt;code&gt;category_id&lt;/code&gt;, тому другий аргумент обов&amp;#039;язковий.</p>
+<hr>
+</section>
+<section class="card" id="7-жадібне-завантаження-і-проблема-n1">
+<h2><span class="num">07</span>Жадібне завантаження і проблема N+1</h2>
+<strong>N+1</strong> — ситуація, коли для списку з N записів виконується 1 запит на список і ще N запитів на зв&#039;язки. Для 100 товарів без <code>with(&#039;category&#039;)</code> буде 101 запит.
+<pre><code>// Погано: 1 + N запитів
+$products = Product::all();
+foreach ($products as $product) {
+    echo $product-&gt;category-&gt;name; // щоразу новий SELECT
+}
+<p>// Добре: 2 запити
+$products = Product::with(&amp;#039;category&amp;#039;)-&amp;gt;get();&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Види завантаження:</p>
+<div class="tw"><table><thead><tr><th>Метод</th><th>Коли працює</th></tr></thead><tbody><tr><td><code>with(&#039;relation&#039;)</code></td><td>одразу, при побудові запиту</td></tr><tr><td><code>load(&#039;relation&#039;)</code></td><td>після отримання моделі</td></tr><tr><td><code>loadMissing(&#039;relation&#039;)</code></td><td>лише якщо зв&#039;язок ще не завантажений</td></tr><tr><td><code>$product-&gt;category</code></td><td>ліниве (lazy) завантаження «на вимогу»</td></tr><tr><td><code>withCount(&#039;reviews&#039;)</code></td><td>додає <code>reviews_count</code> без завантаження всіх відгуків</td></tr></tbody></table></div>
+<p>У лаб. 6 &lt;code&gt;ProductController@index&lt;/code&gt; завантажує &lt;code&gt;category&lt;/code&gt; і &lt;code&gt;reviews&lt;/code&gt;, &lt;code&gt;OrderController@show&lt;/code&gt; — &lt;code&gt;customer.user&lt;/code&gt;, &lt;code&gt;items.product&lt;/code&gt;, &lt;code&gt;payment&lt;/code&gt;, &lt;code&gt;discounts&lt;/code&gt;. Це фіксована кількість запитів незалежно від кількості рядків.</p>
+<p>Перевірити кількість запитів можна через &lt;code&gt;DB::listen()&lt;/code&gt; або Laravel Debugbar. У тестах достатньо переконатися, що відповідь містить вкладені об&amp;#039;єкти.</p>
+<hr>
+</section>
+<section class="card" id="8-фабрики-сідери-faker">
+<h2><span class="num">08</span>Фабрики, сідери, Faker</h2>
+<strong>Фабрика</strong> описує, як згенерувати один тестовий запис:
+<pre><code>class ProductFactory extends Factory
+{
+    public function definition(): array
+    {
+        return [
+            &#039;category_id&#039; =&gt; Category::factory(),
+            &#039;sku&#039; =&gt; fake()-&gt;unique()-&gt;regexify(&#039;[A-Z]{3}-[0-9]{4}&#039;),
+            &#039;name&#039; =&gt; fake()-&gt;words(3, true),
+            &#039;description&#039; =&gt; fake()-&gt;sentence(),
+            &#039;price&#039; =&gt; fake()-&gt;randomFloat(2, 10, 5000),
+            &#039;stock_qty&#039; =&gt; fake()-&gt;numberBetween(0, 200),
+            &#039;is_active&#039; =&gt; fake()-&gt;boolean(90),
+        ];
+    }
+<p>public function inactive(): static
+    {
+        return $this-&amp;gt;state(fn () =&amp;gt; [&amp;#039;is_active&amp;#039; =&amp;gt; false, &amp;#039;stock_qty&amp;#039; =&amp;gt; 0]);
+    }
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<ol>
+<ul>
+<li><code>fake()</code> — екземпляр Faker;</li>
+<li><code>unique()</code> — гарантує унікальність значення (добре для <code>sku</code>, <code>email</code>);</li>
+<li><code>state([...])</code> — іменований стан (<code>inactive()</code>, <code>paid()</code>, <code>admin()</code>);</li>
+<li>вкладені фабрики (<code>Category::factory()</code>) автоматично створюють залежний запис.</li>
+</ul>
+</ol>
+<strong>Сідер</strong> наповнює БД для демонстрації:
+<pre><code>Category::factory()
+    -&gt;count(5)
+    -&gt;has(Product::factory()-&gt;count(8))
+    -&gt;create();
+<p>$customers = Customer::factory()-&amp;gt;count(15)-&amp;gt;create();</p>
+<p>foreach ($customers as $customer) {
+    $order = Order::factory()-&amp;gt;create([&amp;#039;customer_id&amp;#039; =&amp;gt; $customer-&amp;gt;id]);
+    OrderItem::factory()-&amp;gt;count(3)-&amp;gt;create([&amp;#039;order_id&amp;#039; =&amp;gt; $order-&amp;gt;id]);
+    Payment::factory()-&amp;gt;create([&amp;#039;order_id&amp;#039; =&amp;gt; $order-&amp;gt;id]);
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Запуск:</p>
+<pre><code>php artisan db:seed
+php artisan migrate:fresh --seed
+php artisan db:seed --class=DatabaseSeeder</code></pre>
+<p>Сідер має будувати &lt;strong&gt;зв&amp;#039;язані&lt;/strong&gt; дані, інакше демонстрація зв&amp;#039;язків нічого не покаже: у кожного замовлення мусить бути покупець, позиції та платіж.</p>
+<hr>
+</section>
+<section class="card" id="9-цілісність-даних-і-транзакції">
+<h2><span class="num">09</span>Цілісність даних і транзакції</h2>
+<h3>9.1. Рівні захисту</h3>
+<div class="tw"><table><thead><tr><th>Рівень</th><th>Інструмент</th><th>Що гарантує</th></tr></thead><tbody><tr><td>Схема</td><td><code>NOT NULL</code>, <code>UNIQUE</code>, <code>FOREIGN KEY</code>, <code>CHECK</code></td><td>коректність на рівні БД</td></tr><tr><td>Модель</td><td><code>$fillable</code>, <code>$casts</code>, валідація</td><td>коректність на рівні застосунку</td></tr><tr><td>Бізнес-логіка</td><td>транзакції, <code>DB::transaction()</code></td><td>атомарність кількох операцій</td></tr></tbody></table></div>
+<p>Валідація в контролері не замінює обмежень БД: паралельні запити можуть пройти валідацію одночасно, тому &lt;code&gt;UNIQUE&lt;/code&gt; — остання лінія захисту.</p>
+<h3>9.2. Транзакції</h3>
+<p>Створення замовлення — це кілька &lt;code&gt;INSERT&lt;/code&gt; (замовлення, позиції, pivot, перерахунок). Якщо один крок упаде, БД не повинна залишитися в напівстані:</p>
+<pre><code>$order = DB::transaction(function () use ($validated): Order {
+    $order = Order::create([...]);
+<p>foreach ($validated[&amp;#039;items&amp;#039;] as $row) {
+        OrderItem::create([...]);
+    }</p>
+<p>$order-&amp;gt;discounts()-&amp;gt;sync($validated[&amp;#039;discount_ids&amp;#039;] ?? []);
+    $this-&amp;gt;recalculateTotals($order);</p>
+<p>return $order;
+});&lt;/code&gt;&lt;/pre&gt;</p>
+<code>DB::transaction()</code> виконує <code>BEGIN</code>, <code>COMMIT</code> у разі успіху та <code>ROLLBACK</code> у разі винятку. Це стандартний спосіб зберегти узгодженість.
+<h3>9.3. Перерахунок підсумку</h3>
+<pre><code>$subtotal = $order-&gt;items-&gt;sum(
+    fn (OrderItem $item) =&gt; $item-&gt;quantity * $item-&gt;unit_price,
+);
+$percent = min(100.0, (float) $order-&gt;discounts-&gt;sum(&#039;percent&#039;));
+$discountAmount = round($subtotal * $percent / 100, 2);
+<p>$order-&amp;gt;update([
+    &amp;#039;total_amount&amp;#039; =&amp;gt; round($subtotal - $discountAmount, 2),
+    &amp;#039;discount_amount&amp;#039; =&amp;gt; $discountAmount,
+]);&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Сума відсотків обмежена 100 %, інакше знижки могли б зробити замовлення від&amp;#039;ємним. Округлення до копійок виконується на кожному етапі, щоб уникнути похибки &lt;code&gt;float&lt;/code&gt;.</p>
+<hr>
+</section>
+<section class="card" id="10-тестування-бд-і-ci">
+<h2><span class="num">10</span>Тестування БД і CI</h2>
+<h3>10.1. <code>RefreshDatabase</code></h3>
+<pre><code>use Illuminate\Foundation\Testing\RefreshDatabase;
+<p>class ProductDatabaseTest extends TestCase
+{
+    use RefreshDatabase;
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Трейт перед кожним тестом будує чисту схему (у пам&amp;#039;яті або транзакцією) і відкочує зміни після нього. Тести не залежать один від одного й від локальної БД.</p>
+<h3>10.2. Перевірки</h3>
+<pre><code>$response = $this-&gt;postJson(&#039;/catalog&#039;, $payload)
+    -&gt;assertStatus(201)
+    -&gt;assertJsonPath(&#039;data.category.id&#039;, $category-&gt;id);
+<p>$this-&amp;gt;assertDatabaseHas(&amp;#039;products&amp;#039;, [
+    &amp;#039;sku&amp;#039; =&amp;gt; &amp;#039;AUDIO-0099&amp;#039;,
+    &amp;#039;category_id&amp;#039; =&amp;gt; $category-&amp;gt;id,
+]);</p>
+<p>$this-&amp;gt;assertDatabaseHas(&amp;#039;discount_order&amp;#039;, [
+    &amp;#039;order_id&amp;#039; =&amp;gt; $order-&amp;gt;id,
+    &amp;#039;discount_id&amp;#039; =&amp;gt; $ten-&amp;gt;id,
+]);&lt;/code&gt;&lt;/pre&gt;</p>
+<ol>
+<ul>
+<li><code>assertJsonPath()</code> перевіряє структуру відповіді;</li>
+<li><code>assertDatabaseHas()</code> — фактичний рядок у таблиці;</li>
+<li><code>assertDatabaseMissing()</code> — зв&#039;язок справді видалено після <code>sync()</code>;</li>
+<li><code>assertDatabaseCount()</code> — кількість рядків.</li>
+</ul>
+</ol>
+<h3>10.3. CI</h3>
+<pre><code>- name: Ensure SQLite database exists
+  run: touch database/database.sqlite
+<p>- name: Run database migrations
+  run: php artisan migrate --force</p>
+<p>- name: Lint code with Pint
+  run: ./vendor/bin/pint --test</p>
+<p>- name: Run Application Tests
+  run: php artisan test&lt;/code&gt;&lt;/pre&gt;</p>
+<p>CI перевіряє не лише код, а й те, що міграції виконуються на чистій БД. Якщо хтось забув міграцію для нової колонки, тести впадуть ще до merge.</p>
+<h3>10.4. Чому тести мають бути детермінованими</h3>
+<p>Фабрика може генерувати випадкові значення (&lt;code&gt;is_active =&amp;gt; fake()-&amp;gt;boolean(90)&lt;/code&gt;). Якщо тест очікує 3 товари в каталозі, а каталог фільтрує неактивні, результат залежить від випадковості. Правильне рішення — явно зафіксувати потрібний стан:</p>
+<pre><code>Product::factory()-&gt;count(3)-&gt;create([&#039;is_active&#039; =&gt; true]);</code></pre>
+<p>Тест має перевіряти логіку, а не удачу.</p>
+<hr>
+</section>
+<section class="card" id="11-узгодження-з-uml-і-лаб-25">
+<h2><span class="num">11</span>Узгодження з UML і лаб. 2–5</h2>
+<div class="tw"><table><thead><tr><th>Артефакт лаб. 2–5</th><th>Реалізація лаб. 6</th></tr></thead><tbody><tr><td><code>Product</code> (name, price, stock_qty, sku)</td><td>таблиця <code>products</code>, модель <code>Product</code></td></tr><tr><td><code>Category 1 — 0..* Product</code></td><td><code>products.category_id</code>, <code>Category::products()</code></td></tr><tr><td><code>Customer 1 — 0..* Order</code></td><td><code>orders.customer_id</code>, <code>Customer::orders()</code></td></tr><tr><td><code>Order 1 — 0..1 Payment</code></td><td><code>payments.order_id</code> UNIQUE, <code>Order::payment()</code></td></tr><tr><td><code>Order * — * Discount</code></td><td><code>discount_order</code>, <code>belongsToMany</code></td></tr><tr><td><code>Cart 1 — 1..* CartItem</code></td><td><code>cart_items</code>, <code>Cart::items()</code></td></tr><tr><td><code>Product 1 — 0..* Review</code></td><td><code>reviews</code>, <code>Product::reviews()</code></td></tr><tr><td><code>ProductController</code> лаб. 5 (масиви)</td><td>Eloquent-контролер із route model binding</td></tr><tr><td>Middleware <code>CheckAppClient</code> лаб. 5</td><td>збережено для POST/PUT/DELETE товарів</td></tr><tr><td>Feature-тести лаб. 5</td><td>розширено перевірками БД і pivot</td></tr><tr><td>CI лаб. 1–5</td><td>додано <code>migrate --force</code> і SQLite</td></tr></tbody></table></div>
+<p>UML-діаграма лаб. 2 була «паперовою» моделлю; лаб. 6 перетворює її на виконувану схему. Кожен зв&amp;#039;язок діаграми має відповідник у коді — це і є traceability.</p>
+<hr>
+</section>
+<section class="card" id="12-як-усе-складається-в-лаб-6">
+<h2><span class="num">12</span>Як усе складається в лаб. 6</h2>
+<ol>
+<ul>
+<li>Гілка <code>feature/eloquent-migrations-relations</code>, Issue #19.</li>
+<li>Проєктування 12 таблиць, вибір SQLite.</li>
+<li>12 міграцій із FK, індексами, каскадами.</li>
+<li>11 Eloquent-моделей зі зв&#039;язками та <code>$casts</code>.</li>
+<li>11 фабрик і <code>DatabaseSeeder</code>.</li>
+<li>Переписування контролерів на Eloquent, 29 маршрутів.</li>
+<li>Feature-тести: HTTP + фактичний стан БД.</li>
+<li>CI: <code>touch sqlite</code> → <code>migrate --force</code> → <code>pint --test</code> → <code>php artisan test</code>.</li>
+<li>Ручні перевірки curl: 200 / 201 / 403 / 404.</li>
+<li>PR #20, зелений <code>build</code>, очікування рев&#039;ю → merge → Issue <code>Done</code>.</li>
+</ul>
+</ol>
+<strong>Definition of Done:</strong> <code>migrate:fresh --seed</code> без помилок, 16 passed / 45 assertions, Pint passed, зелений CI, PR із <code>Resolves #19</code>.
+<hr>
+</section>
+<section class="card" id="13-глосарій">
+<h2><span class="num">13</span>Глосарій</h2>
+<div class="tw"><table><thead><tr><th>Термін</th><th>Визначення</th></tr></thead><tbody><tr><td><strong>ORM</strong></td><td>зіставлення таблиць БД з об&#039;єктами мови</td></tr><tr><td><strong>Eloquent</strong></td><td>ORM Laravel</td></tr><tr><td><strong>Міграція</strong></td><td>версійована зміна схеми БД</td></tr><tr><td><strong>Сідер</strong></td><td>клас, що наповнює БД початковими даними</td></tr><tr><td><strong>Фабрика</strong></td><td>генератор тестових записів через Faker</td></tr><tr><td><strong>Pivot-таблиця</strong></td><td>проміжна таблиця зв&#039;язку M:M</td></tr><tr><td><strong><code>belongsTo</code></strong></td><td>сторона з зовнішнім ключем</td></tr><tr><td><strong><code>hasMany</code></strong></td><td>сторона «один» у зв&#039;язку 1:M</td></tr><tr><td><strong><code>hasOne</code></strong></td><td>сторона «один» у зв&#039;язку 1:1</td></tr><tr><td><strong><code>belongsToMany</code></strong></td><td>зв&#039;язок M:M через pivot</td></tr><tr><td><strong>Eager loading</strong></td><td>завантаження зв&#039;язків заздалегідь (<code>with</code>)</td></tr><tr><td><strong>N+1</strong></td><td>зайві запити на кожен елемент списку</td></tr><tr><td><strong>Route model binding</strong></td><td>автоматичний <code>findOrFail()</code> за параметром маршруту</td></tr><tr><td><strong>Mass assignment</strong></td><td>масове заповнення полів; регулюється <code>$fillable</code></td></tr><tr><td><strong>Cast</strong></td><td>приведення атрибута до типу (<code>float</code>, <code>bool</code>, <code>date</code>)</td></tr><tr><td><strong><code>sync()</code></strong></td><td>привести набір pivot-зв&#039;язків до заданого</td></tr><tr><td><strong><code>RefreshDatabase</code></strong></td><td>трейт тестів, що перебудовує схему</td></tr><tr><td><strong>FK</strong></td><td>зовнішній ключ (Foreign Key)</td></tr><tr><td><strong>Cascade</strong></td><td>каскадна дія при видаленні/оновленні батька</td></tr></tbody></table></div>
+<hr>
+</section>
+<section class="card" id="14-питання-для-самоконтролю">
+<h2><span class="num">14</span>Питання для самоконтролю</h2>
+<ol>
+<ul>
+<li>Яку проблему розв&#039;язує ORM і чим Eloquent відрізняється від Query Builder?</li>
+<li>Чому в лаб. 6 обрано SQLite і які його обмеження порівняно з MySQL?</li>
+<li>Що роблять методи <code>up()</code> і <code>down()</code> у міграції?</li>
+<li>Чому таблицю <code>products</code> не можна створювати до <code>categories</code>?</li>
+<li>Як у БД гарантується зв&#039;язок 1:1, а не 1:M?</li>
+<li>Навіщо моделі потрібні <code>$fillable</code> і <code>$casts</code>?</li>
+<li>Як Eloquent визначає ім&#039;я pivot-таблиці для <code>Order</code> ↔ <code>Discount</code>?</li>
+<li>У чому різниця між <code>attach()</code>, <code>detach()</code> і <code>sync()</code>?</li>
+<li>Що таке проблема N+1 і як <code>with()</code> її усуває?</li>
+<li>Навіщо створення замовлення обгортають у <code>DB::transaction()</code>?</li>
+<li>Які перевірки дає <code>RefreshDatabase</code> і чому тест каталогу має фіксувати <code>is_active</code>?</li>
+<li>Як CI перевіряє коректність схеми БД?</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="15-відповіді">
+<h2><span class="num">15</span>Відповіді</h2>
+<ol>
+<ul>
+<li><strong>ORM</strong> зіставляє рядки таблиць з об&#039;єктами, дає зв&#039;язки, casts, події та route binding. Query Builder працює з таблицями й масивами, але не знає про моделі та зв&#039;язки; Eloquent будується поверх нього.</li>
+<li>SQLite не потребує сервера й працює у файлі, тому однаково поводиться локально та в GitHub Actions. Обмеження: слабші <code>ALTER TABLE</code>, менше типів, інша поведінка конкурентного запису.</li>
+<li><code>up()</code> застосовує зміну (створює таблицю, додає колонку), <code>down()</code> повертає схему до попереднього стану. Це дозволяє <code>rollback</code>.</li>
+<li>Бо <code>products.category_id</code> — зовнішній ключ на <code>categories.id</code>; СУБД не створить FK на неіснуючу таблицю.</li>
+<li>Зовнішній ключ у дочірній таблиці оголошено <code>UNIQUE</code>: для одного батька фізично можливий лише один рядок.</li>
+<li><code>$fillable</code> захищає від масового запису зайвих полів (наприклад, <code>role</code>), <code>$casts</code> приводить значення до потрібного типу (<code>float</code>, <code>bool</code>, <code>Carbon</code>).</li>
+<li>Laravel бере імена моделей в алфавітному порядку й з&#039;єднує через <code>_</code>: <code>discount</code> + <code>order</code> → <code>discount_order</code>.</li>
+<li><code>attach()</code> додає зв&#039;язок, <code>detach()</code> видаляє, <code>sync()</code> робить набір рівним переданому: додає нові, видаляє зайві, залишає спільні.</li>
+<li>N+1 — один запит на список плюс окремий запит на кожен зв&#039;язок. <code>with(&#039;relation&#039;)</code> завантажує всі зв&#039;язки одним-двома запитами.</li>
+<li>Замовлення створюється кількома <code>INSERT</code>; транзакція гарантує, що при помилці не залишиться часткових даних (замовлення без позицій або без платежу).</li>
+<li><code>RefreshDatabase</code> будує чисту схему й відкочує зміни після тесту. Каталог фільтрує <code>is_active</code>, тому фабрика з випадковим значенням давала б різну кількість — стан треба фіксувати явно.</li>
+<li>CI створює SQLite-файл і виконує <code>php artisan migrate --force</code> перед тестами; будь-яка неузгодженість міграцій валить <code>build</code>.</li>
+</ul>
+</ol>
+<hr>
+<strong>Далі:</strong> <code>lab6/PLAN.md</code>. Перевірки: <code>php artisan migrate:fresh --seed</code>, <code>php artisan test</code>, <code>curl.exe -i</code>.
+</section>
+  </main>
+</div>
+
+<footer>
+  <p>Лабораторна №6 · HTML-версія теорії · синхронізовано з <code>docs/theory/theory-lab6.html</code> у GitHub.</p>
+</footer>
+<a class="top" href="#" title="Вгору" aria-label="Вгору">↑</a>
+</body>
+</html>

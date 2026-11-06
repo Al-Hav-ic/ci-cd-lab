@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Domain\Product;
 use App\Interfaces\LoggerInterface;
-use App\Models\Product;
 
 class EntityService
 {
