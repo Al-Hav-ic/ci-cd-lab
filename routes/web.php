@@ -8,9 +8,13 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Web\CategoryController as WebCategoryController;
+use App\Http\Controllers\Web\CustomerController as WebCustomerController;
+use App\Http\Controllers\Web\DiscountController as WebDiscountController;
+use App\Http\Controllers\Web\OrderController as WebOrderController;
+use App\Http\Controllers\Web\ProductController as WebProductController;
+use App\Http\Controllers\Web\ReviewController as WebReviewController;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/', fn () => view('welcome'));
 
 Route::get('/health', fn () => response()->json([
     'status' => 'OK',
@@ -71,3 +75,27 @@ Route::apiResource('reviews', ReviewController::class)
 
 Route::apiResource('discounts', DiscountController::class)
     ->only(['index', 'store']);
+
+/*
+|--------------------------------------------------------------------------
+| Вебінтерфейс на Blade (лаб. 7): SSR, макети, компоненти, HTML-форми
+|--------------------------------------------------------------------------
+| API-маршрути вище залишено недоторканими (лаб. 5–6): вони повертають JSON
+| і покриті тестами. Вебсторінки живуть на окремих префiксах:
+|   /shop            — CRUD головної сутності Product (1:M -> categories),
+|   /manage/...      — решта сутностей предметної галузі,
+|   /manage/orders   — 1:M (customer) та M:M (discount_order) через форми.
+*/
+
+Route::view('/', 'home')->name('home');
+
+Route::resource('shop', WebProductController::class)
+    ->parameters(['shop' => 'product']);
+
+Route::prefix('manage')->name('manage.')->group(function (): void {
+    Route::resource('categories', WebCategoryController::class)->except(['show']);
+    Route::resource('customers', WebCustomerController::class)->except(['show']);
+    Route::resource('discounts', WebDiscountController::class)->except(['show']);
+    Route::resource('orders', WebOrderController::class);
+    Route::resource('reviews', WebReviewController::class)->except(['show']);
+});
