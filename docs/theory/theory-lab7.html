@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЛР №7 — теорія: Blade, макети, форми, CSRF</title>
+<style>
+
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1b2027; --muted:#5a6472;
+  --line:#e2e6ec; --accent:#2f6feb; --accent-soft:#eaf1fe;
+  --green:#18794e; --green-soft:#e8f6ee; --amber:#8a5a00; --amber-soft:#fdf3e0;
+  --red:#b42318; --red-soft:#fdecea; --violet:#6b3fa0; --violet-soft:#f2ecfa;
+  --code-bg:#101827; --code-text:#e7eef9; --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px -16px rgba(16,24,40,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+a{color:var(--accent)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#16233f 0%,#2f6feb 58%,#4f9cf9 100%);color:#fff;padding:42px 22px 36px}
+.hero-in{max-width:1180px;margin:0 auto}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);line-height:1.18;letter-spacing:-.02em}
+.hero p{margin:0;max-width:80ch;font-size:16.5px;opacity:.94}
+.chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#fff}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:30px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:18px}}
+
+/* toc */
+.toc{position:sticky;top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);max-height:calc(100vh - 36px);overflow:auto}
+@media(max-width:960px){.toc{position:static;max-height:none}}
+.toc h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.toc ol{margin:0;padding-left:18px;font-size:14px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none;color:#33404f}
+.toc a:hover{color:var(--accent)}
+.toc .sep{height:1px;background:var(--line);margin:12px 0;list-style:none}
+
+/* typography */
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;margin:0 0 22px;box-shadow:var(--shadow)}
+@media(max-width:600px){section.card{padding:20px 16px}}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:17.5px;margin:26px 0 8px}
+h4{font-size:15px;margin:20px 0 6px;color:#2a3442}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+.small{font-size:13.5px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:11px;
+  overflow:auto;font-size:13.2px;line-height:1.6;margin:12px 0;border:1px solid #1d2b45}
+pre .c{color:#8fa4c4} /* comment-ish not used automatically */
+:not(pre)>code{background:#eef1f6;border:1px solid #e2e7ef;border-radius:6px;
+  padding:1px 6px;font-size:13.4px;color:#243044;white-space:nowrap}
+
+/* tables */
+.tw{overflow:auto;margin:14px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f3f6fb;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#425063}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafcff}
+
+/* callouts */
+.note,.warn,.ok,.danger{border-radius:11px;padding:13px 16px;margin:14px 0;font-size:14.5px;
+  border:1px solid;border-left-width:4px}
+.note{background:var(--accent-soft);border-color:#c8dbfb;border-left-color:var(--accent)}
+.warn{background:var(--amber-soft);border-color:#f3ddb3;border-left-color:#c98a00}
+.ok{background:var(--green-soft);border-color:#bfe6d0;border-left-color:var(--green)}
+.danger{background:var(--red-soft);border-color:#f6cfca;border-left-color:var(--red)}
+.note b,.warn b,.ok b,.danger b{display:block;margin-bottom:2px}
+
+/* diagram */
+.flow{display:grid;gap:10px;margin:16px 0}
+.flow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.node{flex:1 1 150px;background:#f7f9fd;border:1px solid #d9e2f1;border-radius:10px;
+  padding:10px 12px;font-size:13.2px;line-height:1.45}
+.node b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:3px}
+.node.red{background:var(--red-soft);border-color:#f0c7c1}
+.node.red b{color:var(--red)}
+.node.green{background:var(--green-soft);border-color:#b9e2c9}
+.node.green b{color:var(--green)}
+.arrow{flex:0 0 auto;align-self:center;color:#9aa7b8;font-size:18px}
+
+/* timeline */
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:#dbe5f5}
+.steps li:last-child::after{display:none}
+
+/* questions */
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 6px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.b-easy{background:var(--green-soft);border-color:#b9e2c9;color:var(--green)}
+.b-mid{background:var(--amber-soft);border-color:#f0d9ac;color:var(--amber)}
+.b-hard{background:var(--violet-soft);border-color:#dcccf2;color:var(--violet)}
+.qcount{font-size:13px;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:11px;padding:0;margin:10px 0;background:#fcfdff;overflow:hidden}
+details.qa summary{cursor:pointer;list-style:none;padding:13px 16px 13px 42px;position:relative;
+  font-weight:600;font-size:15px;line-height:1.45}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa summary::before{content:"+";position:absolute;left:14px;top:11px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:5px;background:#e9eefb;
+  color:var(--accent);font-weight:700;font-size:15px}
+details.qa[open] summary::before{content:"–"}
+details.qa summary:hover{background:#f2f6ff}
+.qa .ans{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14.6px;background:#fff}
+.qa .ans p:first-child{margin-top:10px}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.btn{appearance:none;border:1px solid #cdd8ea;background:#fff;color:#25324a;border-radius:9px;
+  padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{background:#f2f6ff;border-color:#b6c8e6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#255fce}
+
+/* footer */
+footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);font-size:13.5px}
+.top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 8px 20px -6px rgba(47,111,235,.6);font-size:18px}
+
+@media print{
+  .toc,.top,.qbar,.hero{position:static}
+  body{background:#fff}
+  section.card{box-shadow:none;border:0;padding:0;margin:0 0 8px;page-break-inside:auto}
+  details.qa{page-break-inside:avoid}
+  details.qa .ans{display:block!important}
+}
+
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">Лабораторна робота №7 · Теорія</p>
+    <h1>View-рівень Laravel: Blade, SSR, макети, компоненти, HTML-форми</h1>
+    <p>SSR проти SPA, директиви Blade, layouts і компоненти, Method Spoofing, CSRF-захист, життєвий цикл валідації та Eager Loading у поданнях.</p>
+    <div class="chips"><span class="chip">Blade</span><span class="chip">SSR</span><span class="chip">layouts &amp; components</span><span class="chip">CSRF</span><span class="chip">Method Spoofing</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="toc">
+    <h2>Зміст</h2>
+    <ol>
+<li><a href="#1-ssr-та-mvc-де-живе-view">SSR та MVC: де живе View</a></li>
+<li><a href="#2-життєцикл-ssr-запиту">Життєцикл SSR-запиту</a></li>
+<li><a href="#3-шаблонізатор-blade-синтаксис-і-компіляція">Шаблонізатор Blade: синтаксис і компіляція</a></li>
+<li><a href="#4-успадкування-макетів-layouts">Успадкування макетів (layouts)</a></li>
+<li><a href="#5-blade-компоненти">Blade-компоненти</a></li>
+<li><a href="#6-html-форми-та-method-spoofing">HTML-форми та Method Spoofing</a></li>
+<li><a href="#7-csrf-захист-форм">CSRF-захист форм</a></li>
+<li><a href="#8-валідація-та-життєвий-цикл-помилок">Валідація та життєвий цикл помилок</a></li>
+<li><a href="#9-eager-loading-у-поданнях">Eager Loading у поданнях</a></li>
+<li><a href="#10-feature-тестування-інтерфейсу">Feature-тестування інтерфейсу</a></li>
+<li><a href="#11-узгодження-з-use-cases-лаб-2">Узгодження з Use Cases лаб. 2</a></li>
+<li><a href="#12-як-усе-складається-в-лаб-7">Як усе складається в лаб. 7</a></li>
+<li><a href="#13-глосарій">Глосарій</a></li>
+<li><a href="#14-питання-для-самоконтролю">Питання для самоконтролю</a></li>
+<li><a href="#15-відповіді">Відповіді</a></li>
+    </ol>
+    <p class="small" style="margin-top:14px">Репозиторій: <a href="https://github.com/Al-Hav-ic/ci-cd-lab">Al-Hav-ic/ci-cd-lab</a></p>
+  </aside>
+
+  <main>
+<section class="card" id="1-ssr-та-mvc-де-живе-view">
+<h2><span class="num">01</span>SSR та MVC: де живе View</h2>
+<strong>Патерн MVC</strong> (Model–View–Controller) розподіляє вебдодаток на три шари:
+<ol>
+<ul>
+<li><strong>Model</strong> — дані та правила роботи з ними (у нас — моделі Eloquent з лаб. 6: <code>Product</code>, <code>Category</code>, <code>Order</code>...).</li>
+<li><strong>View</strong> — представлення, тобто те, що бачить користувач: HTML-сторінки, таблиці, форми.</li>
+<li><strong>Controller</strong> — проміжний шар: приймає запит, звертається до моделей, обирає подання й передає туди дані.</li>
+</ul>
+</ol>
+<p>Існує два принципово різні способи отримати UI в браузері:</p>
+<div class="tw"><table><thead><tr><th>Критерій</th><th>SSR (Laravel + Blade)</th><th>SPA (React/Vue + JSON API)</th></tr></thead><tbody><tr><td>Де рендериться HTML</td><td>на сервері</td><td>у браузері, через JavaScript</td></tr><tr><td>Мова шаблонів</td><td>Blade (<code>.blade.php</code>)</td><td>JSX/шаблони компонентів</td></tr><tr><td>Передані дані</td><td>готовий HTML</td><td>JSON, збірка DOM на клієнті</td></tr><tr><td>Навігація</td><td>повне завантаження сторінки</td><td>маршрутизація без перезавантаження</td></tr><tr><td>SEO та «перша фарба»</td><td>одразу готовий контент</td><td>потрібне додаткове SSR/прейрендер</td></tr><tr><td>Стан додатку</td><td>у сесії на сервері</td><td>на клієнті (store, hooks)</td></tr></tbody></table></div>
+<strong>SSR</strong> (Server-Side Rendering) означає: кожен запит обробляється сервером, який збирає повну HTML-сторінку й віддає її браузеру. Blade-шаблонізатор Laravel — інструмент саме для SSR. Це не «застарілий» підхід: для адмінок, каталогів, звітів SSR простіший, безпечніший і швидше віддає першу сторінку.
+<blockquote class="note"><strong>Контекст лаб. 7:</strong> у лаб. 5 API-контролери повертали <code>JsonResponse</code> — споживачем був програмний клієнт. Тепер ті самі сутності обслуговують людину: контролери повертають <code>view(...)</code>, а дані форм подорожують через сесію. API лишається недоторканим — обидва режими працюють паралельно.</blockquote>
+<hr>
+</section>
+<section class="card" id="2-життєцикл-ssr-запиту">
+<h2><span class="num">02</span>Життєцикл SSR-запиту</h2>
+<strong>Запит</strong> на сторінку каталогу <code>/shop</code> проходить такий шлях:
+<ol>
+<ul>
+<li><strong>public/index.php</strong> — front controller; створюється застосунок Laravel.</li>
+<li><strong>Middleware</strong> — напр., перевірка сесії (для CSRF), запуск сесії для <code>old()</code> і flash.</li>
+<li><strong>Router</strong> — <code>routes/web.php</code>: <code>GET /shop</code> → <code>Web\ProductController@index</code>.</li>
+<li><strong>Controller</strong> — виконує запит до БД (<code>Product::with(&#039;category&#039;)-&gt;paginate(10)</code>) і викликає <code>view(&#039;shop.index&#039;, [...])</code>.</li>
+<li><strong>Blade-компіляція</strong> — шаблон перетворюється на звичайний PHP-код (кешується в <code>storage/framework/views</code>).</li>
+<li><strong>Рендер</strong> — PHP-код виконується, дані «втілюються» в HTML.</li>
+<li><strong>Response</strong> — готовий HTML відправляється браузеру.</li>
+</ul>
+</ol>
+<pre><code>Браузер → HTTP-запит → Router → Controller (+Model) → View (Blade)
+                                                        ↓
+Браузер ← HTTP-відповідь (HTML) ← Response ← компільований PHP</code></pre>
+<p>Жодного JavaScript на сервері не виконується, а браузер отримує вікно, яке вже повністю намальоване.</p>
+<hr>
+</section>
+<section class="card" id="3-шаблонізатор-blade-синтаксис-і-компіляція">
+<h2><span class="num">03</span>Шаблонізатор Blade: синтаксис і компіляція</h2>
+<strong>Blade</strong> — вбудований шаблонізатор Laravel. Файли з розширенням <code>.blade.php</code> зберігаються в <code>resources/views</code>. На відміну від Twig, Blade не забороняє чистий PHP, але пропонує декларативні директиви (починаються з <code>@</code>) для типових завдань. При першому виклику шаблон компілюється у PHP і кешується — далі виконується тільки компільована версія.
+<p>Ключові конструкції:</p>
+<div class="tw"><table><thead><tr><th>Конструкція</th><th>Що робить</th></tr></thead><tbody><tr><td><code>{{ $var }}</code></td><td>вивід з автоматичним <code>htmlspecialchars()</code> — захист від XSS</td></tr><tr><td><code>{!! $html !!}</code></td><td>вивід сирого HTML (тільки для довіреного контенту)</td></tr><tr><td><code>@if / @elseif / @else / @endif</code></td><td>умови</td></tr><tr><td><code>@foreach ... @endforeach</code></td><td>цикл; всередині доступний об&#039;єкт <code>$loop</code> (<code>$loop-&gt;first</code>, <code>$loop-&gt;iteration</code>)</td></tr><tr><td><code>@forelse ... @empty ... @endforelse</code></td><td>цикл з запасним варіантом для порожньої колекції</td></tr><tr><td><code>@empty($var) / @isset($var)</code></td><td>перевірка порожньості/наявності</td></tr><tr><td><code>@csrf</code>, <code>@method(&#039;PUT&#039;)</code></td><td>приховані поля форм (нижче)</td></tr><tr><td><code>@error(&#039;field&#039;) ... @enderror</code></td><td>блок, що спрацьовує за наявності помилки валідації</td></tr></tbody></table></div>
+<strong>Приклад</strong> з нашого каталогу <code>resources/views/shop/index.blade.php</code>:
+<pre><code>@forelse ($products as $product)
+    &lt;tr&gt;
+        &lt;td&gt;{{ $product-&gt;id }}&lt;/td&gt;
+        &lt;td&gt;{{ $product-&gt;name }}&lt;/td&gt;
+        &lt;td&gt;{{ $product-&gt;category-&gt;name ?? &#039;Немає&#039; }}&lt;/td&gt;
+        &lt;td&gt;{{ number_format($product-&gt;price, 2) }}&lt;/td&gt;
+        &lt;td&gt;
+            @if ($product-&gt;is_active)
+                &lt;span class=&quot;badge bg-success&quot;&gt;активний&lt;/span&gt;
+            @else
+                &lt;span class=&quot;badge bg-secondary&quot;&gt;приховано&lt;/span&gt;
+            @endif
+        &lt;/td&gt;
+    &lt;/tr&gt;
+@empty
+    &lt;tr&gt;&lt;td colspan=&quot;7&quot; class=&quot;text-center&quot;&gt;Записів не знайдено.&lt;/td&gt;&lt;/tr&gt;
+@endforelse</code></pre>
+<blockquote class="note"><strong>Безпека за замовчуванням:</strong> конструкція <code>{{ }}</code> екранує вивід. Якщо у формі коментар покупець напише <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, Blade покаже цей текст як текст, а не виконає скрипт. <code>{!! !!}</code> застосовується лише там, де HTML перевірений розробником.</blockquote>
+<hr>
+</section>
+<section class="card" id="4-успадкування-макетів-layouts">
+<h2><span class="num">04</span>Успадкування макетів (layouts)</h2>
+<p>Вебдодаток має спільні елементи: шапку з навігацією, підвал, підключення CSS. Дублювати їх у кожній сторінці — погана практика. Blade вирішує це механізмом успадкування:</p>
+<ol>
+<ul>
+<li><strong>Базовий макет</strong> <code>resources/views/layouts/app.blade.php</code> містить каркас HTML і «мітки вставки» — <code>@yield(&#039;content&#039;)</code> та <code>@yield(&#039;title&#039;, &#039;за замовчуванням&#039;)</code>.</li>
+<li><strong>Дочірні шаблони</strong> оголошують <code>@extends(&#039;layouts.app&#039;)</code> і наповнюють секції через <code>@section(&#039;content&#039;) ... @endsection</code>.</li>
+</ul>
+</ol>
+<strong>Наш макет</strong> <code>layouts/app.blade.php</code> (скорочено):
+<pre><code>&lt;nav class=&quot;navbar navbar-expand-lg navbar-dark bg-dark mb-4&quot;&gt;
+    &lt;div class=&quot;container&quot;&gt;
+        &lt;a class=&quot;navbar-brand&quot; href=&quot;{{ route(&#039;home&#039;) }}&quot;&gt;Супермаркет&lt;/a&gt;
+        &lt;ul class=&quot;navbar-nav me-auto&quot;&gt;
+            &lt;li&gt;&lt;a class=&quot;nav-link&quot; href=&quot;{{ route(&#039;shop.index&#039;) }}&quot;&gt;Каталог&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a class=&quot;nav-link&quot; href=&quot;{{ route(&#039;manage.categories.index&#039;) }}&quot;&gt;Категорії&lt;/a&gt;&lt;/li&gt;
+            &lt;!-- ... покупці, знижки, замовлення, відгуки --&gt;
+        &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/nav&gt;
+&lt;div class=&quot;container&quot;&gt;
+    @if (session(&#039;success&#039;))
+        &lt;div class=&quot;alert alert-success alert-dismissible fade show&quot;&gt;
+            {{ session(&#039;success&#039;) }}
+            &lt;button type=&quot;button&quot; class=&quot;btn-close&quot; data-bs-dismiss=&quot;alert&quot;&gt;&lt;/button&gt;
+        &lt;/div&gt;
+    @endif
+    @yield(&#039;content&#039;)
+&lt;/div&gt;</code></pre>
+<p>Дочірнє подання:</p>
+<pre><code>@extends(&#039;layouts.app&#039;)
+<p>@section(&amp;#039;title&amp;#039;, &amp;#039;Каталог товарів&amp;#039;)</p>
+<p>@section(&amp;#039;content&amp;#039;)
+    &amp;lt;h1&amp;gt;Каталог товарів&amp;lt;/h1&amp;gt;
+    ...
+@endsection&lt;/code&gt;&lt;/pre&gt;</p>
+<strong>Flash-повідомлення</strong> живуть саме в макеті: контролер після успішної дії робить <code>redirect()-&gt;route(...)-&gt;with(&#039;success&#039;, &#039;Товар створено!&#039;)</code>, значення пишеться в сесію, макет читає <code>session(&#039;success&#039;)</code> і показує зелене <code>alert-success</code> лише один раз (на наступному запиті воно зникає).
+<hr>
+</section>
+<section class="card" id="5-blade-компоненти">
+<h2><span class="num">05</span>Blade-компоненти</h2>
+<strong>Компонент</strong> — сучасна альтернатива <code>@include</code>: самодостатній блок HTML з власними атрибутами-пропсами. Анонімні компоненти лежать у <code>resources/views/components</code> і викликаються тегами з префіксом <code>x-</code>.
+<strong>Наш компонент</strong> поля вводу <code>components/form/input.blade.php</code>:
+<pre><code>@props([&#039;name&#039;, &#039;label&#039;, &#039;type&#039; =&gt; &#039;text&#039;, &#039;value&#039; =&gt; &#039;&#039;])
+<p>&amp;lt;div class=&amp;quot;mb-3&amp;quot;&amp;gt;
+    &amp;lt;label for=&amp;quot;{{ $name }}&amp;quot; class=&amp;quot;form-label&amp;quot;&amp;gt;{{ $label }}&amp;lt;/label&amp;gt;
+    &amp;lt;input
+        type=&amp;quot;{{ $type }}&amp;quot;
+        name=&amp;quot;{{ $name }}&amp;quot;
+        id=&amp;quot;{{ $name }}&amp;quot;
+        class=&amp;quot;form-control @error($name) is-invalid @enderror&amp;quot;
+        value=&amp;quot;{{ old($name, $value) }}&amp;quot;
+        {{ $attributes }}
+    &amp;gt;
+    @error($name)
+        &amp;lt;div class=&amp;quot;invalid-feedback&amp;quot;&amp;gt;{{ $message }}&amp;lt;/div&amp;gt;
+    @enderror
+&amp;lt;/div&amp;gt;&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Використання у формі:</p>
+<pre><code>&lt;x-form.input name=&quot;name&quot; label=&quot;Назва товару&quot; required/&gt;
+&lt;x-form.input name=&quot;price&quot; label=&quot;Ціна, грн&quot; type=&quot;number&quot; step=&quot;0.01&quot; :value=&quot;$product-&gt;price&quot;/&gt;</code></pre>
+<p>Розбір:</p>
+<ol>
+<ul>
+<li><code>@props</code> оголошує пропси та значення за замовчуванням; <code>:value=&quot;...&quot;</code> — «динамічний» пропс (вираз PHP, а не рядок).</li>
+<li><code>{{ $attributes }}</code> — додаткові атрибути (<code>required</code>, <code>step</code>, <code>min</code>...).</li>
+<li><strong><code>$slot</code></strong> — вміст між <code>&lt;x-...&gt;...&lt;/x-...&gt;</code>, доступний всередині компонента; у компонентах «обгортках» (картка, модальне вікно) на його місце стає вкладений HTML.</li>
+</ul>
+</ol>
+<strong>Компонент прибрав дублювання:</strong> правила «підставити <code>old()</code>, підсвітити помилку, показати текст помилки» описані один раз, а не в кожній формі.
+<hr>
+</section>
+<section class="card" id="6-html-форми-та-method-spoofing">
+<h2><span class="num">06</span>HTML-форми та Method Spoofing</h2>
+<strong>Стандартна HTML-форма</strong> вміє лише GET і POST. Але RESTful-маршрутизація вимагає <code>PUT/PATCH</code> для оновлення та <code>DELETE</code> для видалення. Laravel вирішує це механізмом <strong>Method Spoofing</strong>: директива <code>@method(&#039;PUT&#039;)</code> додає приховане поле <code>_method</code>, яке маршрутизатор розпізнає й трактує запит як PUT/DELETE.
+<pre><code>&lt;!-- Редагування: POST-форма, що подає себе як PUT --&gt;
+&lt;form action=&quot;{{ route(&#039;shop.update&#039;, $product-&gt;id) }}&quot; method=&quot;POST&quot;&gt;
+    @csrf
+    @method(&#039;PUT&#039;)
+    ...
+&lt;/form&gt;
+<p>&amp;lt;!-- Видалення прямо зі списку --&amp;gt;
+&amp;lt;form action=&amp;quot;{{ route(&amp;#039;shop.destroy&amp;#039;, $product-&amp;gt;id) }}&amp;quot; method=&amp;quot;POST&amp;quot;
+      onsubmit=&amp;quot;return confirm(&amp;#039;Дійсно видалити?&amp;#039;);&amp;quot;&amp;gt;
+    @csrf
+    @method(&amp;#039;DELETE&amp;#039;)
+    &amp;lt;button type=&amp;quot;submit&amp;quot; class=&amp;quot;btn btn-sm btn-danger&amp;quot;&amp;gt;Видалити&amp;lt;/button&amp;gt;
+&amp;lt;/form&amp;gt;&lt;/code&gt;&lt;/pre&gt;</p>
+<strong>Результат:</strong> <code>Route::resource(&#039;shop&#039;, ...)</code> працює коректно — <code>update</code> отримує запит PUT, <code>destroy</code> — DELETE, хоча фізично браузер відправляв POST.
+<p>Вибір зв&amp;#039;язків у формах:</p>
+<div class="tw"><table><thead><tr><th>Зв&#039;язок</th><th>HTML-елемент</th><th>Дані на сервері</th></tr></thead><tbody><tr><td>1:M (Product → Category, Order → Customer)</td><td><code>&lt;select&gt;</code> зі списком батьківських записів</td><td>одне поле <code>category_id</code> / <code>customer_id</code></td></tr><tr><td>M:M (Order ↔ Discount)</td><td>група <code>&lt;input type=&quot;checkbox&quot; name=&quot;discount_ids[]&quot;&gt;</code></td><td>масив id; <code>sync()</code> оновлює pivot <code>discount_order</code></td></tr></tbody></table></div>
+<hr>
+</section>
+<section class="card" id="7-csrf-захист-форм">
+<h2><span class="num">07</span>CSRF-захист форм</h2>
+<strong>CSRF</strong> (Cross-Site Request Forgery) — атака, за якої зловмисна сторінка змушує браузер залогіненого користувача відправити запит на наш сайт (напр., POST-запит на видалення товару). Браузер автоматично докладає cookies сесії, тож сервер «вірячить», що це сам користувач.
+<strong>Захист</strong> — токен CSRF: унікальне випадкове значення, збережене в сесії, яке має бути присутнім у запиті. Директива <code>@csrf</code> додає приховане поле:
+<pre><code>&lt;input type=&quot;hidden&quot; name=&quot;_token&quot; value=&quot;xK2f...9dQ&quot;&gt;</code></pre>
+<strong>Middleware <code>ValidateCsrfToken</code></strong> порівнює на кожному POST/PUT/PATCH/DELETE значення поля з сесією. Якщо не збігається — запит відхиляється з помилкою 419 (Page Expired), до контролера він не доходить.
+<p>Слідства для практики: у curl-сценаріях чи тестах доводиться окремо витягувати токен із форми; у feature-тестах Laravel перевіряє CSRF автоматично або в тестовому середовищі його пропускає.</p>
+<hr>
+</section>
+<section class="card" id="8-валідація-та-життєвий-цикл-помилок">
+<h2><span class="num">08</span>Валідація та життєвий цикл помилок</h2>
+<p>Класичний цикл роботи з формою:</p>
+<pre><code>GET /shop/create  →  форма порожня
+POST /shop        →  validate() → якщо помилки:
+                        редірект назад + помилки та old() у сесії
+                  →  GET /shop/create знову:
+                        @error показує повідомлення, old() повертає введене
+                  →  якщо все добре: зберігаємо, redirect()-&gt;with(&#039;success&#039;, ...)</code></pre>
+<p>Метод контролера:</p>
+<pre><code>public function store(Request $request): RedirectResponse
+{
+    $validated = $request-&gt;validate([
+        &#039;name&#039; =&gt; [&#039;required&#039;, &#039;string&#039;, &#039;min:3&#039;, &#039;max:255&#039;],
+        &#039;sku&#039; =&gt; [&#039;required&#039;, &#039;string&#039;, &#039;max:64&#039;, &#039;unique:products,sku&#039;],
+        &#039;price&#039; =&gt; [&#039;required&#039;, &#039;numeric&#039;, &#039;min:0&#039;],
+        &#039;category_id&#039; =&gt; [&#039;required&#039;, &#039;integer&#039;, &#039;exists:categories,id&#039;],
+    ]);
+<p>Product::create($validated);</p>
+<p>return redirect()
+        -&amp;gt;route(&amp;#039;shop.index&amp;#039;)
+        -&amp;gt;with(&amp;#039;success&amp;#039;, &amp;#039;Товар успішно створено!&amp;#039;);
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Ланцюжок помилок:</p>
+<ol>
+<ul>
+<li><code>$request-&gt;validate()</code> при невдачі кидає <code>ValidationException</code>;</li>
+<li>Laravel перехоплює її і робить <strong>редірект назад</strong> (<code>HTTP_REFERER</code>), а помилки кладеться в спеціальний масив сесії;</li>
+<li>наступний запит подання бачить змінну <strong><code>$errors</code></strong> (об&#039;єкт <code>ViewErrorBag</code>) — глобально доступну в будь-якому Blade-шаблоні;</li>
+<li>компонент директивою <code>@error(&#039;name&#039;)</code> показує текст помилки конкретного поля, клас <code>is-invalid</code> підсвічує рамку;</li>
+<li>хелпер <strong><code>old(&#039;name&#039;, $default)</code></strong> витягує попередньо введене значення, щоб користувач не набирав форму заново.</li>
+</ul>
+</ol>
+<strong>Унікальність при редагуванні</strong> — окремий нюанс: правило <code>Rule::unique(&#039;products&#039;, &#039;sku&#039;)-&gt;ignore($product-&gt;id)</code> каже валідатору не рахувати власний поточний запис конфліктом.
+<hr>
+</section>
+<section class="card" id="9-eager-loading-у-поданнях">
+<h2><span class="num">09</span>Eager Loading у поданнях</h2>
+<strong>Подання каталогу</strong> виводить назву категорії для кожного товару. Без підготовки це проблема <strong>N+1</strong>: 1 запит на список + N запитів на категорії. Рішення — жадібне завантаження з лаб. 6:
+<pre><code>$products = Product::query()
+    -&gt;with([&#039;category:id,name&#039;, &#039;reviews:id,product_id,rating,text&#039;])
+    -&gt;orderBy(&#039;id&#039;, &#039;desc&#039;)
+    -&gt;paginate(10);
+<p>return view(&amp;#039;shop.index&amp;#039;, [&amp;#039;products&amp;#039; =&amp;gt; $products]);&lt;/code&gt;&lt;/pre&gt;</p>
+<strong>Тепер</strong> список каталогу — рівно 2–3 запити: сторінка товарів, сторінка категорій (по <code>IN (...)</code>), лічильник пагінації. Конструкція <code>{{ $product-&gt;category-&gt;name ?? &#039;Немає&#039; }}</code> не виконує жодного запиту — дані вже в пам&#039;яті. Оператор <code>?? &#039;Немає&#039;</code> страхує випадок, коли зв&#039;язок відсутній.
+<hr>
+</section>
+<section class="card" id="10-feature-тестування-інтерфейсу">
+<h2><span class="num">10</span>Feature-тестування інтерфейсу</h2>
+<p>Feature-тести перевіряють SSR-сторінки як HTTP-запити: дамо запит, отримаємо HTML, перевіримо зміст.</p>
+<pre><code>public function test_index_page_displays_entities(): void
+{
+    $product = Product::factory()-&gt;create([&#039;name&#039; =&gt; &#039;Унікальний Тестовий Товар&#039;]);
+<p>$this-&amp;gt;get(&amp;#039;/shop&amp;#039;)
+        -&amp;gt;assertStatus(200)
+        -&amp;gt;assertSee(&amp;#039;Унікальний Тестовий Товар&amp;#039;)
+        -&amp;gt;assertSee(&amp;#039;Додати новий запис&amp;#039;);
+}</p>
+<p>public function test_create_form_validates_input(): void
+{
+    $this-&amp;gt;post(&amp;#039;/shop&amp;#039;, [&amp;#039;name&amp;#039; =&amp;gt; &amp;#039;&amp;#039;, &amp;#039;price&amp;#039; =&amp;gt; &amp;#039;invalid&amp;#039;])
+        -&amp;gt;assertSessionHasErrors([&amp;#039;name&amp;#039;, &amp;#039;price&amp;#039;]);
+}&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Нюанси:</p>
+<ol>
+<ul>
+<li><code>RefreshDatabase</code> — кожен тест працює з чистою БД (SQLite у пам&#039;яті);</li>
+<li>фабрики з лаб. 6 створюють тестові дані за один рядок;</li>
+<li><code>assertSee($value, false)</code> — для перевірки <strong>сирого HTML</strong> (<code>type=&quot;checkbox&quot;</code>, <code>name=&quot;customer_id&quot;</code>), бо за замовчуванням <code>assertSee</code> екранує та шукає екранований текст;</li>
+<li>форма редагування замовлення тестується на наявність select покупця (<code>name=&quot;customer_id&quot;</code>) та чекбоксів знижок — так UI зв&#039;язків 1:M/M:M стає контрактом.</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="11-узгодження-з-use-cases-лаб-2">
+<h2><span class="num">11</span>Узгодження з Use Cases лаб. 2</h2>
+<p>У лаб. 2 спроектовано Use Case та ER-схему супермаркету. Лаб. 7 закриває UI-частину кожного прецеденту:</p>
+<div class="tw"><table><thead><tr><th>Use Case (лаб. 2)</th><th>Сторінка / форма</th><th>Маршрут</th></tr></thead><tbody><tr><td>Перегляд каталогу товарів</td><td><code>shop/index</code> — таблиця з категорією, пагінація</td><td><code>GET /shop</code></td></tr><tr><td>Перегляд картки товару</td><td><code>shop/show</code> — властивості + відгуки</td><td><code>GET /shop/{id}</code></td></tr><tr><td>Додавання товару</td><td><code>shop/create</code> — компонент <code>x-form.input</code> + select категорії</td><td><code>GET/POST /shop</code></td></tr><tr><td>Редагування товару</td><td><code>shop/edit</code> — заповнена з БД, <code>@method(&#039;PUT&#039;)</code></td><td><code>GET/PUT /shop/{id}</code></td></tr><tr><td>Видалення товару</td><td>кнопка-форма з <code>@method(&#039;DELETE&#039;)</code></td><td><code>DELETE /shop/{id}</code></td></tr><tr><td>Керування категоріями</td><td><code>manage/categories/{index,create,edit}</code></td><td><code>/manage/categories*</code></td></tr><tr><td>Реєстрація покупців</td><td><code>manage/customers/{index,create,edit}</code></td><td><code>/manage/customers*</code></td></tr><tr><td>Знижки</td><td><code>manage/discounts/{index,create,edit}</code></td><td><code>/manage/discounts*</code></td></tr><tr><td>Оформлення замовлення</td><td><code>manage/orders/create</code> — select покупця (1:M), чекбокси знижок (M:M)</td><td><code>GET/POST /manage/orders</code></td></tr><tr><td>Редагування замовлення</td><td><code>manage/orders/edit</code> — sync знижок, статус</td><td><code>GET/PUT /manage/orders/{id}</code></td></tr><tr><td>Відгуки</td><td><code>manage/reviews/{index,create,edit}</code> — два select (товар, покупець)</td><td><code>/manage/reviews*</code></td></tr></tbody></table></div>
+<hr>
+</section>
+<section class="card" id="12-як-усе-складається-в-лаб-7">
+<h2><span class="num">12</span>Як усе складається в лаб. 7</h2>
+<p>Архітектура додатку після лаб. 7:</p>
+<pre><code>routes/web.php
+├── API (лаб. 5–6, не змінено): /products, /catalog, /orders, ...  → JsonResponse
+└── Web (лаб. 7)
+    ├── /shop                → Web\ProductController   → shop/{index,show,create,edit}
+    └── /manage/*            → Web\{Category,Customer,Discount,Order,Review}Controller
+        └── manage/{...}/{index,create,edit}
+views/
+├── layouts/app.blade.php    — каркас, navbar, flash
+├── components/form/input.blade.php — поле вводу з old() і @error
+└── shop/, manage/, home     — 20 подань</code></pre>
+<p>Головна сутність Product отримала повний CRUD через HTML-форми, решта сутностей — масштабування того ж підходу. Зв&amp;#039;язки з лаб. 6 (1:M, M:M) вперше працюють не через API, а через звичайні елементи HTML: select і чекбокси.</p>
+<hr>
+</section>
+<section class="card" id="13-глосарій">
+<h2><span class="num">13</span>Глосарій</h2>
+<ol>
+<ul>
+<li><strong>SSR</strong> (Server-Side Rendering) — рендеринг HTML на сервері за кожен запит.</li>
+<li><strong>SPA</strong> (Single Page Application) — застосунок, що рендериться в браузері через JS на базі JSON API.</li>
+<li><strong>Blade</strong> — шаблонізатор Laravel (<code>.blade.php</code>), компілюється в PHP і кешується.</li>
+<li><strong>Директива</strong> — конструкція Blade на кшталт <code>@if</code>, <code>@foreach</code>, <code>@csrf</code>.</li>
+<li><strong>Макет (layout)</strong> — базовий шаблон зі спільним каркасом; успадковується через <code>@extends</code>.</li>
+<li><strong><code>@yield</code> / <code>@section</code></strong> — «мітка вставки» в макеті та заповнення її в дочірньому шаблоні.</li>
+<li><strong>Компонент</strong> — перевикористовуваний блок Blade; анонімні лежать у <code>resources/views/components</code>, виклик — <code>&lt;x-...&gt;</code>.</li>
+<li><strong><code>$slot</code></strong> — вміст між тегами компонента.</li>
+<li><strong>Flash-повідомлення</strong> — значення в сесії «на один наступний запит» (<code>with(&#039;success&#039;, ...)</code> → <code>session(&#039;success&#039;)</code>).</li>
+<li><strong>Method Spoofing</strong> — підміна HTTP-методу через приховане поле <code>_method</code>.</li>
+<li><strong>CSRF-токен</strong> — секрет сесії, що підтверджує автентичність запиту (<code>@csrf</code>, поле <code>_token</code>).</li>
+<li><strong><code>old()</code></strong> — хелпер, який повертає попередньо введене значення поля після невдалої валідації.</li>
+<li><strong><code>$errors</code></strong> — об&#039;єкт з помилками валідації, доступний у всіх поданнях.</li>
+<li><strong>N+1</strong> — антипатерн запитів, лікується жадібним завантаженням <code>with()</code>.</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="14-питання-для-самоконтролю">
+<h2><span class="num">14</span>Питання для самоконтролю</h2>
+<ol>
+<ul>
+<li>У чому архітектурна відмінність SSR (Blade) від рендерингу на клієнті (SPA + JSON API)?</li>
+<li>Яке призначення директив <code>@yield</code> та <code>@section</code>?</li>
+<li>Як Blade захищає від XSS при виводі через <code>{{ }}</code>?</li>
+<li>Для чого компоненти <code>&lt;x-...&gt;</code> і як працює <code>$slot</code>?</li>
+<li>Що таке CSRF-атака і як <code>@csrf</code> захищає форми?</li>
+<li>Навіщо Method Spoofing (<code>@method(&#039;PUT&#039;)</code>/<code>@method(&#039;DELETE&#039;)</code>)?</li>
+<li>Який життєвий цикл помилок валідації — від <code>validate()</code> до <code>$errors</code> у Blade?</li>
+<li>Для чого хелпер <code>old()</code>?</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="15-відповіді">
+<h2><span class="num">15</span>Відповіді</h2>
+<ol>
+<ul>
+<li><strong>SSR</strong> збирає готовий HTML на сервері за кожен запит; клієнт лише показує його. <strong>SPA</strong> отримує JSON і будує DOM у браузері. SSR простіший у захисті та краще віддає перший рендер; SPA — інтерактивніший після завантаження, але вимагає окремого API, клієнтської маршрутизації й стеження за станом.</li>
+<li><code>@yield(&#039;content&#039;)</code> у макеті оголошує місце вставки (з опціональним значенням за замовчуванням); <code>@section(&#039;content&#039;) ... @endsection</code> у дочірньому шаблоні надає вміст. <code>@extends</code> зв&#039;язує шаблон із макетом.</li>
+<li><code>{{ $var }}</code> компілюється в <code>htmlspecialchars($var, ENT_QUOTES)</code>, тож <code>&lt;script&gt;</code> стає <code>&amp;lt;script&amp;gt;</code> і не виконається. Сирої вивід — свідома дія через <code>{!! !!}</code>.</li>
+<li>Компоненти інкапсулюють HTML-блок із пропсами (<code>@props</code>) та атрибутами (<code>$attributes</code>), усуваючи дублювання. <code>$slot</code> містить усе, що написано між відкриваючим і закриваючим тегами <code>&lt;x-...&gt;</code>.</li>
+<li>CSRF-атака змушує браузер залогіненого користувача відправити запит без його відома. Токен з сесії (<code>@csrf</code> → поле <code>_token</code>) перевіряється middleware; запит без коректного токена отримує 419 і не доходить до контролера.</li>
+<li>HTML-форми знають лише GET/POST, а REST вимагає PUT/PATCH/DELETE. <code>@method(&#039;PUT&#039;)</code> додає приховане поле <code>_method=PUT</code>, за яким маршрутизатор викликає потрібний метод контролера.</li>
+<li><code>validate()</code> при невдачі кидає <code>ValidationException</code> → Laravel редіректить назад і кладе помилки в сесію → наступний рендер має глобальну <code>$errors</code> → <code>@error(&#039;field&#039;)</code> показує текст, <code>old(&#039;field&#039;)</code> відновлює введене.</li>
+<li><code>old(&#039;field&#039;, $default)</code> читає «старе» значення поля з сесії після невдалого POST — користувач бачить свою форму майже незміненою, виправляє лише помилкові поля.</li>
+</ul>
+</ol>
+</section>
+  </main>
+</div>
+
+<footer>
+  <p>Лабораторна №7 · HTML-версія теорії · синхронізовано з <code>docs/theory/theory-lab7.html</code> у GitHub.</p>
+</footer>
+<a class="top" href="#" title="Вгору" aria-label="Вгору">↑</a>
+</body>
+</html>

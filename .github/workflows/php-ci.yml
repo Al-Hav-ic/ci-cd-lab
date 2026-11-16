@@ -29,8 +29,11 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Prepare SQLite database
-        run: php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
+      - name: Ensure SQLite database exists
+        run: touch database/database.sqlite
+
+      - name: Run database migrations
+        run: php artisan migrate --force
 
       - name: Lint code with Pint
         run: ./vendor/bin/pint --test
