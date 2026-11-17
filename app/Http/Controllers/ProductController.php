@@ -4,130 +4,107 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     /**
-     * @var array<int, array<string, mixed>>
+     * Список товарів із жадібним завантаженням категорії та відгуків.
+     * Eager Loading (with) усуває проблему N+1.
      */
-    private array $items = [
-        [
-            'id' => 1,
-            'name' => 'Молоко «Галичина» 2.5 % 900 мл',
-            'price' => 32.50,
-            'stock_qty' => 48,
-            'manufacturer' => 'Галичина',
-        ],
-        [
-            'id' => 2,
-            'name' => 'Хліб «Київхліб» нарізаний',
-            'price' => 28.90,
-            'stock_qty' => 25,
-            'manufacturer' => 'Київхліб',
-        ],
-        [
-            'id' => 3,
-            'name' => 'Олія соняшникова «Олейна» 1 л',
-            'price' => 62.00,
-            'stock_qty' => 0,
-            'manufacturer' => 'Олейна',
-        ],
-    ];
-
     public function index(Request $request): JsonResponse
     {
-        $manufacturer = $request->query('manufacturer');
-
-        $items = $manufacturer === null
-            ? $this->items
-            : array_values(array_filter(
-                $this->items,
-                static fn (array $item): bool => $item['manufacturer'] === $manufacturer,
-            ));
+        $products = Product::query()
+            ->with(['category:id,name,slug', 'reviews:id,product_id,rating'])
+            ->when(
+                $request->filled('category_id'),
+                static fn ($query) => $query->where('category_id', $request->integer('category_id')),
+            )
+            ->when(
+                $request->filled('search'),
+                static fn ($query) => $query->where('name', 'like', '%'.$request->string('search').'%'),
+            )
+            ->when(
+                $request->boolean('active_only', true),
+                static fn ($query) => $query->where('is_active', true),
+            )
+            ->orderBy('name')
+            ->paginate(15);
 
         return response()->json([
             'status' => 'success',
-            'count' => count($items),
-            'data' => $items,
+            'count' => $products->total(),
+            'data' => $products,
         ], 200);
     }
 
+    /**
+     * Створення товару з прив'язкою до категорії (зв'язок 1:M).
+     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
             'name' => ['required', 'string', 'min:2', 'max:255'],
+            'sku' => ['required', 'string', 'max:32', 'unique:products,sku'],
+            'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
-            'stock_qty' => ['required', 'integer', 'min:0'],
-            'manufacturer' => ['required', 'string', 'max:120'],
+            'stock_qty' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $nextId = $this->items === []
-            ? 1
-            : (int) max(array_column($this->items, 'id')) + 1;
-
-        $item = [
-            'id' => $nextId,
-            'name' => $validated['name'],
-            'price' => (float) $validated['price'],
-            'stock_qty' => (int) $validated['stock_qty'],
-            'manufacturer' => $validated['manufacturer'],
-        ];
-
-        $this->items[] = $item;
+        $product = Product::create($validated);
+        $product->load('category:id,name,slug');
 
         return response()->json([
             'status' => 'created',
-            'data' => $item,
+            'data' => $product,
         ], 201);
     }
 
-    public function show(string $id): JsonResponse
+    public function show(Product $product): JsonResponse
     {
-        $itemId = (int) $id;
-
-        foreach ($this->items as $item) {
-            if ($item['id'] === $itemId) {
-                return response()->json([
-                    'status' => 'success',
-                    'data' => $item,
-                ], 200);
-            }
-        }
+        $product->load([
+            'category:id,name,slug',
+            'reviews' => static fn ($query) => $query->where('is_approved', true),
+            'reviews.customer.user:id,name',
+        ]);
 
         return response()->json([
-            'status' => 'error',
-            'message' => 'Ресурс із зазначеним ідентифікатором не знайдено.',
-        ], 404);
+            'status' => 'success',
+            'data' => $product,
+        ], 200);
     }
 
-    public function create(): JsonResponse
+    public function update(Request $request, Product $product): JsonResponse
     {
+        $validated = $request->validate([
+            'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
+            'name' => ['sometimes', 'string', 'min:2', 'max:255'],
+            'sku' => ['sometimes', 'string', 'max:32', 'unique:products,sku,'.$product->id],
+            'description' => ['nullable', 'string'],
+            'price' => ['sometimes', 'numeric', 'min:0'],
+            'stock_qty' => ['sometimes', 'integer', 'min:0'],
+            'is_active' => ['sometimes', 'boolean'],
+        ]);
+
+        $product->update($validated);
+        $product->load('category:id,name,slug');
+
         return response()->json([
-            'status' => 'not_implemented',
-            'message' => 'HTML-форма буде реалізована в ЛР №7.',
-        ], 501);
+            'status' => 'updated',
+            'data' => $product,
+        ], 200);
     }
 
-    public function edit(string $id): JsonResponse
+    public function destroy(Product $product): JsonResponse
     {
-        return $this->create();
-    }
+        $product->delete();
 
-    public function update(Request $request, string $id): JsonResponse
-    {
         return response()->json([
-            'status' => 'not_implemented',
-            'message' => 'Оновлення буде реалізоване в ЛР №6.',
-        ], 501);
-    }
-
-    public function destroy(string $id): JsonResponse
-    {
-        return response()->json([
-            'status' => 'not_implemented',
-            'message' => 'Видалення буде реалізоване в ЛР №6.',
-        ], 501);
+            'status' => 'deleted',
+        ], 200);
     }
 }

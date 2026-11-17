@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЛР №8 — теорія: Sanctum, Policies, OpenAPI</title>
+<style>
+
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1b2027; --muted:#5a6472;
+  --line:#e2e6ec; --accent:#2f6feb; --accent-soft:#eaf1fe;
+  --green:#18794e; --green-soft:#e8f6ee; --amber:#8a5a00; --amber-soft:#fdf3e0;
+  --red:#b42318; --red-soft:#fdecea; --violet:#6b3fa0; --violet-soft:#f2ecfa;
+  --code-bg:#101827; --code-text:#e7eef9; --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px -16px rgba(16,24,40,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+a{color:var(--accent)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#16233f 0%,#2f6feb 58%,#4f9cf9 100%);color:#fff;padding:42px 22px 36px}
+.hero-in{max-width:1180px;margin:0 auto}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);line-height:1.18;letter-spacing:-.02em}
+.hero p{margin:0;max-width:80ch;font-size:16.5px;opacity:.94}
+.chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#fff}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:30px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:18px}}
+
+/* toc */
+.toc{position:sticky;top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);max-height:calc(100vh - 36px);overflow:auto}
+@media(max-width:960px){.toc{position:static;max-height:none}}
+.toc h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.toc ol{margin:0;padding-left:18px;font-size:14px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none;color:#33404f}
+.toc a:hover{color:var(--accent)}
+.toc .sep{height:1px;background:var(--line);margin:12px 0;list-style:none}
+
+/* typography */
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;margin:0 0 22px;box-shadow:var(--shadow)}
+@media(max-width:600px){section.card{padding:20px 16px}}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:17.5px;margin:26px 0 8px}
+h4{font-size:15px;margin:20px 0 6px;color:#2a3442}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+.small{font-size:13.5px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:11px;
+  overflow:auto;font-size:13.2px;line-height:1.6;margin:12px 0;border:1px solid #1d2b45}
+pre .c{color:#8fa4c4} /* comment-ish not used automatically */
+:not(pre)>code{background:#eef1f6;border:1px solid #e2e7ef;border-radius:6px;
+  padding:1px 6px;font-size:13.4px;color:#243044;white-space:nowrap}
+
+/* tables */
+.tw{overflow:auto;margin:14px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f3f6fb;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#425063}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafcff}
+
+/* callouts */
+.note,.warn,.ok,.danger{border-radius:11px;padding:13px 16px;margin:14px 0;font-size:14.5px;
+  border:1px solid;border-left-width:4px}
+.note{background:var(--accent-soft);border-color:#c8dbfb;border-left-color:var(--accent)}
+.warn{background:var(--amber-soft);border-color:#f3ddb3;border-left-color:#c98a00}
+.ok{background:var(--green-soft);border-color:#bfe6d0;border-left-color:var(--green)}
+.danger{background:var(--red-soft);border-color:#f6cfca;border-left-color:var(--red)}
+.note b,.warn b,.ok b,.danger b{display:block;margin-bottom:2px}
+
+/* diagram */
+.flow{display:grid;gap:10px;margin:16px 0}
+.flow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.node{flex:1 1 150px;background:#f7f9fd;border:1px solid #d9e2f1;border-radius:10px;
+  padding:10px 12px;font-size:13.2px;line-height:1.45}
+.node b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:3px}
+.node.red{background:var(--red-soft);border-color:#f0c7c1}
+.node.red b{color:var(--red)}
+.node.green{background:var(--green-soft);border-color:#b9e2c9}
+.node.green b{color:var(--green)}
+.arrow{flex:0 0 auto;align-self:center;color:#9aa7b8;font-size:18px}
+
+/* timeline */
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:#dbe5f5}
+.steps li:last-child::after{display:none}
+
+/* questions */
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 6px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.b-easy{background:var(--green-soft);border-color:#b9e2c9;color:var(--green)}
+.b-mid{background:var(--amber-soft);border-color:#f0d9ac;color:var(--amber)}
+.b-hard{background:var(--violet-soft);border-color:#dcccf2;color:var(--violet)}
+.qcount{font-size:13px;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:11px;padding:0;margin:10px 0;background:#fcfdff;overflow:hidden}
+details.qa summary{cursor:pointer;list-style:none;padding:13px 16px 13px 42px;position:relative;
+  font-weight:600;font-size:15px;line-height:1.45}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa summary::before{content:"+";position:absolute;left:14px;top:11px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:5px;background:#e9eefb;
+  color:var(--accent);font-weight:700;font-size:15px}
+details.qa[open] summary::before{content:"–"}
+details.qa summary:hover{background:#f2f6ff}
+.qa .ans{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14.6px;background:#fff}
+.qa .ans p:first-child{margin-top:10px}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.btn{appearance:none;border:1px solid #cdd8ea;background:#fff;color:#25324a;border-radius:9px;
+  padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{background:#f2f6ff;border-color:#b6c8e6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#255fce}
+
+/* footer */
+footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);font-size:13.5px}
+.top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 8px 20px -6px rgba(47,111,235,.6);font-size:18px}
+
+@media print{
+  .toc,.top,.qbar,.hero{position:static}
+  body{background:#fff}
+  section.card{box-shadow:none;border:0;padding:0;margin:0 0 8px;page-break-inside:auto}
+  details.qa{page-break-inside:avoid}
+  details.qa .ans{display:block!important}
+}
+
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">Лабораторна робота №8 · Теорія</p>
+    <h1>Автентифікація, авторизація та документування REST API</h1>
+    <p>Сесії проти Bearer-токенів, Sanctum і personal_access_tokens, Policies як єдиний шар авторизації, API Resources з whenLoaded, OpenAPI/Swagger UI та тести 401/403.</p>
+    <div class="chips"><span class="chip">Sanctum</span><span class="chip">Policies</span><span class="chip">API Resources</span><span class="chip">OpenAPI · Swagger</span><span class="chip">401 vs 403</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside class="toc">
+    <h2>Зміст</h2>
+    <ol>
+<li><a href="#1-автентифікація-vs-авторизація">Автентифікація vs авторизація</a></li>
+<li><a href="#2-сесійна-автентифікація-стан-на-сервері">Сесійна автентифікація: стан на сервері</a></li>
+<li><a href="#3-токен-автентифікація-та-laravel-sanctum">Токен-автентифікація та Laravel Sanctum</a></li>
+<li><a href="#4-session-fixation-та-гігієна-сесій">Session Fixation та гігієна сесій</a></li>
+<li><a href="#5-авторизація-gates-та-policies">Авторизація: Gates та Policies</a></li>
+<li><a href="#6-уніфікація-авторизації-у-гібридній-архітектурі">Уніфікація авторизації у гібридній архітектурі</a></li>
+<li><a href="#7-декларативні-директиви-auth-guest-can">Декларативні директиви @auth, @guest, @can</a></li>
+<li><a href="#8-api-resources-контракт-json-відповіді">API Resources: контракт JSON-відповіді</a></li>
+<li><a href="#9-проблема-n--1-запитів-та-whenloaded">Проблема N + 1 запитів та whenLoaded</a></li>
+<li><a href="#10-специфікація-openapi-та-swagger-ui">Специфікація OpenAPI та Swagger UI</a></li>
+<li><a href="#11-http-401-vs-403">HTTP 401 vs 403</a></li>
+<li><a href="#12-версіонування-api">Версіонування API</a></li>
+<li><a href="#13-feature-тести-захисту">Feature-тести захисту</a></li>
+<li><a href="#14-узгодження-з-use-cases-лаб-2">Узгодження з Use Cases лаб. 2</a></li>
+<li><a href="#15-як-усе-складається-в-лаб-8">Як усе складається в лаб. 8</a></li>
+<li><a href="#16-глосарій">Глосарій</a></li>
+<li><a href="#17-питання-для-самоконтролю">Питання для самоконтролю</a></li>
+<li><a href="#18-відповіді">Відповіді</a></li>
+    </ol>
+    <p class="small" style="margin-top:14px">Репозиторій: <a href="https://github.com/Al-Hav-ic/ci-cd-lab">Al-Hav-ic/ci-cd-lab</a></p>
+  </aside>
+
+  <main>
+<section class="card" id="1-автентифікація-vs-авторизація">
+<h2><span class="num">01</span>Автентифікація vs авторизація</h2>
+<p>Це два різні питання, які часто плутають:</p>
+<div class="tw"><table><thead><tr><th>Питання</th><th>Механізм</th><th>Приклад</th></tr></thead><tbody><tr><td><strong>Автентифікація</strong> — «Хто ви?»</td><td>сесія / Bearer-токен</td><td>вхід за email + password</td></tr><tr><td><strong>Авторизація</strong> — «Чи маєте ви право?»</td><td>Gates / Policies</td><td>«чи можна Іванові видалити товар Олени?»</td></tr></tbody></table></div>
+<p>Автентифікація встановлює &lt;strong&gt;ідентичність&lt;/strong&gt; користувача; авторизація визначає &lt;strong&gt;права&lt;/strong&gt; цієї ідентичності над конкретним ресурсом. Користувач може бути автентифікованим (увійшов у систему), але неавторизованим для конкретної дії (не є власником запису).</p>
+<blockquote class="note"><strong>Контекст лаб. 8:</strong> наш каталог допускає двох рівнів: перегляд — усім (гостям теж), а створення — будь-якому автентифікованому користувачу, оновлення та видалення — лише власнику запису. Це і є автентифікація (для «лише користувачам») + авторизація (для «лише власнику»).</blockquote>
+<hr>
+</section>
+<section class="card" id="2-сесійна-автентифікація-стан-на-сервері">
+<h2><span class="num">02</span>Сесійна автентифікація: стан на сервері</h2>
+<p>Класичний вебінтерфейс — &lt;strong&gt;stateful&lt;/strong&gt;: сервер пам&amp;#039;ятає, хто увійшов, у серверній сесії. Механізм:</p>
+<ol>
+<ul>
+<li>Користувач надсилає email + password через HTML-форму (з CSRF-токеном з лаб. 7).</li>
+<li><code>Auth::attempt($credentials)</code> хешує пароль і порівнює з колонкою <code>users.password</code>.</li>
+<li>При успіху Laravel зберігає ідентифікатор користувача в сесії та ставить у браузер <strong>session cookie</strong>.</li>
+<li>Наступні запити браузер автоматично супроводжує цим cookie — middleware <code>auth</code> знаходить користувача через <code>Auth::user()</code>.</li>
+</ul>
+</ol>
+<pre><code>Браузер: POST /login (email, password, _token)
+   → Auth::attempt() → сесія створена → Set-Cookie: laravel_session=...
+Браузер: GET /shop/create (Cookie: laravel_session=...)
+   → middleware auth → Auth::user() → доступ дозволено</code></pre>
+<p>Паролі не зберігаються у відкритому вигляді: у моделі &lt;code&gt;User&lt;/code&gt; cast &lt;code&gt;&amp;#039;password&amp;#039; =&amp;gt; &amp;#039;hashed&amp;#039;&lt;/code&gt; означає, що при записі Laravel автоматично застосує bcrypt; перевірка відбувається через &lt;code&gt;Hash::check()&lt;/code&gt;.</p>
+<hr>
+</section>
+<section class="card" id="3-токен-автентифікація-та-laravel-sanctum">
+<h2><span class="num">03</span>Токен-автентифікація та Laravel Sanctum</h2>
+<p>REST API — &lt;strong&gt;stateless&lt;/strong&gt;: сервер не зберігає стан між запитами, бо клієнтом може бути мобільний застосунок, SPA або скрипт, які не використовують cookie. Для ідентифікації застосовують &lt;strong&gt;Bearer-токен&lt;/strong&gt;.</p>
+<strong>Laravel Sanctum</strong> випускає персональні токени доступу:
+<ol>
+<ul>
+<li>Клієнт надсилає <code>POST /login</code> з email + password.</li>
+<li>Сервер перевіряє облікові дані та викликає <code>$user-&gt;createToken(&#039;api-token&#039;)</code>.</li>
+<li>Sanctum генерує випадковий рядок, клієнту повертає його <strong>лише один раз</strong> (<code>plainTextToken</code>), а в таблицю <code>personal_access_tokens</code> зберігає <strong>SHA-256 хеш</strong> токена.</li>
+<li>Кожен наступний запит клієнт супроводжує заголовком:</li>
+<pre><code>Authorization: Bearer &lt;ваш_токен&gt;</code></pre>
+<li>Middleware <code>auth:sanctum</code> на кожному запиті: витягує токен із заголовка, хешує його й шукає збіг у БД. Знайшов — пов&#039;язує запит з відповідним користувачем; не знайшов — <code>AuthenticationException</code> (HTTP 401).</li>
+</ul>
+</ol>
+<div class="tw"><table><thead><tr><th>Критерій</th><th>Сесія (веб)</th><th>Sanctum-токен (API)</th></tr></thead><tbody><tr><td>Де зберігається ідентифікатор</td><td>cookie браузера</td><td>передається клієнтом у заголовку</td></tr><tr><td>Стан сервера</td><td>сесія на сервері</td><td>без стану (тільки запис у <code>personal_access_tokens</code>)</td></tr><tr><td>Канал передачі</td><td>автоматично, cookie</td><td>вручну, <code>Authorization: Bearer</code></td></tr><tr><td>Скасовування</td><td>видалення сесії</td><td><code>$token-&gt;delete()</code> — вихід для одного пристрою</td></tr><tr><td>Типовий споживач</td><td>браузер (SSR)</td><td>мобільний застосунок, SPA, curl, Swagger UI</td></tr></tbody></table></div>
+<p>Токен — це «пароль для одного пристрою»: ним можна увійти з ноутбука й телефону одночасно, а «вихід» (&lt;code&gt;/logout&lt;/code&gt;) відкликає лише поточний токен (&lt;code&gt;currentAccessToken()-&amp;gt;delete()&lt;/code&gt;).</p>
+<hr>
+</section>
+<section class="card" id="4-session-fixation-та-гігієна-сесій">
+<h2><span class="num">04</span>Session Fixation та гігієна сесій</h2>
+<strong>Session Fixation</strong> — атака, коли зловмисник підсуває жертві відому йому сесію (наприклад, посилання з фіксованим ID сесії), щоб після входу жертви увійти в її акаунт. Захист — <strong>регенерація</strong> ідентифікатора сесії в момент підвищення привілеїв:
+<pre><code>Auth::attempt($credentials);
+$request-&gt;session()-&gt;regenerate();   // новий ID сесії після входу</code></pre>
+<p>При виході з 系统 важливо знищити все:</p>
+<pre><code>Auth::logout();
+$request-&gt;session()-&gt;invalidate();    // стерти дані сесії
+$request-&gt;session()-&gt;regenerateToken(); // новий CSRF-токен</code></pre>
+<code>invalidate()</code> завершує сесію (стара cookie стає недійсною), <code>regenerateToken()</code> замінює CSRF-токен, щоб старі форми, залишені у відкритих вкладках, не можна було використати після виходу.
+<hr>
+</section>
+<section class="card" id="5-авторизація-gates-та-policies">
+<h2><span class="num">05</span>Авторизація: Gates та Policies</h2>
+<p>Laravel пропонує два декларативні механізми перевірки прав:</p>
+<div class="tw"><table><thead><tr><th>Механізм</th><th>Що це</th><th>Коли застосовувати</th></tr></thead><tbody><tr><td><strong>Gate</strong></td><td>замикання (closure), зареєстроване в <code>AppServiceProvider</code>, не прив&#039;язане до моделі</td><td>спільні дії: «доступ до панелі адміністратора»</td></tr><tr><td><strong>Policy</strong></td><td>клас, що групує правила навколо однієї Eloquent-моделі</td><td>CRUD конкретного ресурсу</td></tr></tbody></table></div>
+<strong>Policy</strong> для <code>Product</code> має стандартний набір методів:
+<pre><code>viewAny(?User $user)  // чи бачити список
+view(?User $user, Product $product) // чи бачити запис
+create(User $user)    // чи створювати
+update(User $user, Product $product) // чи редагувати
+delete(User $user, Product $product) // чи видаляти</code></pre>
+<p>Сигнатура &lt;code&gt;?User $user&lt;/code&gt; (nullable) означає: правило викликається навіть для &lt;strong&gt;гостей&lt;/strong&gt; — так перегляд каталогу залишається публічним. Правила повертають &lt;code&gt;true&lt;/code&gt;/&lt;code&gt;false&lt;/code&gt;:</p>
+<pre><code>public function update(User $user, Product $product): bool
+{
+    return $user-&gt;id === $product-&gt;user_id; // лише власник
+}</code></pre>
+<p>У контролері перевірка — один рядок:</p>
+<pre><code>$this-&gt;authorize(&#039;update&#039;, $product);</code></pre>
+<p>Це викликає &lt;code&gt;ProductPolicy::update()&lt;/code&gt;; при &lt;code&gt;false&lt;/code&gt; кидається &lt;code&gt;AuthorizationException&lt;/code&gt; → HTTP &lt;strong&gt;403 Forbidden&lt;/strong&gt;. Політику виявлено автоматично за конвенцією імен: &lt;code&gt;App\Models\Product&lt;/code&gt; → &lt;code&gt;App\Policies\ProductPolicy&lt;/code&gt;.</p>
+<hr>
+</section>
+<section class="card" id="6-уніфікація-авторизації-у-гібридній-архітектурі">
+<h2><span class="num">06</span>Уніфікація авторизації у гібридній архітектурі</h2>
+<p>Головна перевага Laraveл-архітектури: &lt;strong&gt;один шар авторизації&lt;/strong&gt; для вебу (сесії) та API (токени):</p>
+<ol>
+<ul>
+<li><strong>Web\ProductController</strong> (веб): <code>$this-&gt;authorize(&#039;update&#039;, $product)</code> → при забороні браузер отримує HTML-сторінку 403.</li>
+<li><strong>Api\ProductApiController</strong> (API): той самий виклик того самого <code>ProductPolicy</code> → API-клієнт отримує JSON 403.</li>
+</ul>
+</ol>
+<p>Логіку змінюємо в одному місці — вона застосовується всюди. Це захищає від типового бага, коли правило оновили в API, а забули у вебі (або навпаки).</p>
+<p>Різниця лише у &lt;strong&gt;вхідній автентифікації&lt;/strong&gt;: веб-контролер діє від особи користувача з сесії (&lt;code&gt;auth()-&amp;gt;id()&lt;/code&gt;), API-контролер — від особи власника Bearer-токена (&lt;code&gt;$request-&amp;gt;user()-&amp;gt;id&lt;/code&gt;). При створенні запису &lt;strong&gt;user_id призначає сервер&lt;/strong&gt;, а не довіряє запиту:</p>
+<pre><code>$validated[&#039;user_id&#039;] = auth()-&gt;id();        // веб
+$validated[&#039;user_id&#039;] = $request-&gt;user()-&gt;id; // API</code></pre>
+<hr>
+</section>
+<section class="card" id="7-декларативні-директиви-auth-guest-can">
+<h2><span class="num">07</span>Декларативні директиви @auth, @guest, @can</h2>
+<p>Політика на сервері &lt;strong&gt;обов&amp;#039;язкова&lt;/strong&gt;, але не дає доброго UX: користувачу неприємно бачити кнопку «Видалити», яка при натисканні дає 403. У Blade є директиви, що читають ті самі правила:</p>
+<pre><code>@guest
+    &lt;a href=&quot;{{ route(&#039;login&#039;) }}&quot;&gt;Увійти&lt;/a&gt;
+@endguest
+<p>@auth
+    &amp;lt;span class=&amp;quot;nav-link text-info&amp;quot;&amp;gt;{{ Auth::user()-&amp;gt;name }}&amp;lt;/span&amp;gt;
+@endauth</p>
+<p>@can(&amp;#039;update&amp;#039;, $product)
+    &amp;lt;a href=&amp;quot;{{ route(&amp;#039;shop.edit&amp;#039;, $product-&amp;gt;id) }}&amp;quot; class=&amp;quot;btn btn-sm btn-warning&amp;quot;&amp;gt;Редаг.&amp;lt;/a&amp;gt;
+@endcan&lt;/code&gt;&lt;/pre&gt;</p>
+<ol>
+<ul>
+<li><code>@guest</code> / <code>@auth</code> — перевіряють лише факт входу (для navbar).</li>
+<li><code>@can(&#039;update&#039;, $product)</code> — викликає <code>ProductPolicy::update()</code> для конкретного запису: кнопки «Редаг.»/«Видалити» бачить лише власник.</li>
+</ul>
+</ol>
+<strong>Захист у глибину:</strong> приховування кнопки — це UX, а не безпека. Пряме звернення <code>/shop/{id}/edit</code> все одно обробляє сервер: <code>authorize()</code> у контролері поверне 403 незалежно від того, що показує інтерфейс.
+<hr>
+</section>
+<section class="card" id="8-api-resources-контракт-json-відповіді">
+<h2><span class="num">08</span>API Resources: контракт JSON-відповіді</h2>
+<p>Якщо повертати моделі Eloquent напряму (&lt;code&gt;return $product&lt;/code&gt;), клієнт отримує всю внутрішню структуру таблиці: службові поля, зовнішні ключі, приховані дані. Це і незручно (контракт «плаває» при зміні схеми), і небезпечно.</p>
+<strong>API Resource</strong> (клас, успадкований від <code>JsonResource</code>) — шар трансформації між моделлю та JSON-відповіддю. Він визначає чіткий контракт:
+<pre><code>return [
+    &#039;id&#039; =&gt; $this-&gt;id,
+    &#039;name&#039; =&gt; $this-&gt;name,
+    &#039;price&#039; =&gt; (float) $this-&gt;price,
+    &#039;owner_id&#039; =&gt; $this-&gt;user_id,      // зовнішній ключ → семантичне поле
+    &#039;category&#039; =&gt; $this-&gt;whenLoaded(&#039;category&#039;, fn () =&gt; [...]),
+    &#039;created_at&#039; =&gt; $this-&gt;created_at?-&gt;toISOString(), // ISO 8601
+];</code></pre>
+<p>Що дає ресурс: клієнтський код не ламається при рефакторингу БД; зовнішні ключі перейменовуються у зрозумілі поля (&lt;code&gt;user_id&lt;/code&gt; → &lt;code&gt;owner_id&lt;/code&gt;); типи нормалізуються (decimal → float, дати → ISO 8601); зайвого немає (паролі, службові колонки не потрапляють у відповідь навіть випадково).</p>
+<hr>
+</section>
+<section class="card" id="9-проблема-n--1-запитів-та-whenloaded">
+<h2><span class="num">09</span>Проблема N + 1 запитів та whenLoaded</h2>
+<strong>N + 1</strong> — типова вада ORM: для списку з 10 товарів виконується 1 запит списку + 10 окремих запитів категорій (по одному на товар). Розв&#039;язання — <strong>жадібне завантаження</strong> (Eager Loading) одним додатковим запитом:
+<pre><code>Product::with([&#039;category:id,name&#039;, &#039;reviews:id,product_id,rating,text&#039;])
+    -&gt;paginate(10);</code></pre>
+<p>У ресурсі &lt;code&gt;whenLoaded(&amp;#039;category&amp;#039;, ...)&lt;/code&gt; додає зв&amp;#039;язок у JSON &lt;strong&gt;лише якщо&lt;/strong&gt; контролер його завантажив:</p>
+<ol>
+<ul>
+<li>контролер забув <code>with(&#039;category&#039;)</code> → поле <code>category</code> взагалі відсутнє у відповіді (немає прихованого N + 1);</li>
+<li>контролер завантажив → клієнт отримує вкладений об&#039;єкт.</li>
+</ul>
+</ol>
+<p>Так ресурс «примушує» контролер свідомо планувати запити, а клієнт бачить передбачуваний контракт.</p>
+<hr>
+</section>
+<section class="card" id="10-специфікація-openapi-та-swagger-ui">
+<h2><span class="num">10</span>Специфікація OpenAPI та Swagger UI</h2>
+<strong>OpenAPI Specification (OAS)</strong> — галузевий стандарт опису REST API: маршрути, методи, параметри, тіла запитів, коди відповідей і схеми безпеки у JSON/YAML. Документація, написана вручну, швидко застаріває; специфікація, згенерована з коду, завжди збігається з реальністю.
+<p>Пакет &lt;strong&gt;l5-swagger&lt;/strong&gt; генерує специфікацію з PHP 8 Attributes (&lt;code&gt;#[OA\Get(...)]&lt;/code&gt;, &lt;code&gt;#[OA\Post(...)]&lt;/code&gt;) прямо над методами контролерів і віддає її через інтерактивну сторінку &lt;strong&gt;Swagger UI&lt;/strong&gt; на &lt;code&gt;/api/documentation&lt;/code&gt;:</p>
+<ol>
+<ul>
+<li>Базові атрибути (<code>OA\Info</code>, <code>OA\Server</code>, <code>OA\SecurityScheme</code>) — у базовому класі контролерів: заголовок документації, адреса сервера <code>/api/v1</code> і схема безпеки <code>bearerAuth</code> (дає кнопку <strong>Authorize</strong>).</li>
+<li>Атрибути над методами (<code>OA\Get</code>, <code>OA\Post</code>, <code>OA\Put</code>, <code>OA\Delete</code>) описують ендпоінт: теги, параметри, приклади тіл запитів, можливі відповіді (201/401/403/422).</li>
+<li><code>security: [[&quot;bearerAuth&quot; =&gt; []]]</code> позначає ендпоінт як захищений.</li>
+</ul>
+</ol>
+<strong>Swagger UI</strong> — не просто сторінка з текстом: це <strong>інтерактивний консоль</strong>. Кнопка Authorize приймає реальний Bearer-токен (отриманий через <code>POST /login</code>), після чого кнопка Execute кожної операції виконує справжні HTTP-запити до сервера й показує фактичні коди відповідей (201 Created, 403 Forbidden) і тіла JSON. Тестувальник може перевірити контракт без написання жодного рядка коду.
+<hr>
+</section>
+<section class="card" id="11-http-401-vs-403">
+<h2><span class="num">11</span>HTTP 401 vs 403</h2>
+<p>Обидва статуси — «відмова», але з різним змістом:</p>
+<div class="tw"><table><thead><tr><th>Статус</th><th>Значення</th><th>Коли виникає у нас</th></tr></thead><tbody><tr><td><strong>401 Unauthorized</strong></td><td>«Хто ви? Не впізнано» — відсутній/невірний токен</td><td>POST <code>/api/v1/products</code> без заголовка <code>Authorization</code></td></tr><tr><td><strong>403 Forbidden</strong></td><td>«Ви впізнані, але права немає» — токен валідний, дія заборонена</td><td>DELETE чужого товару з валідним токеном</td></tr></tbody></table></div>
+<p>Мнемоніка: 401 — проблема &lt;strong&gt;автентифікації&lt;/strong&gt;; 403 — проблема &lt;strong&gt;авторизації&lt;/strong&gt;. Правильний API повертає 401 для неавтентифікованих запитів і 403 для автентифікованих, але без прав: клієнт за кодом розуміє, що робити (повторно увійти або не намагатись).</p>
+<hr>
+</section>
+<section class="card" id="12-версіонування-api">
+<h2><span class="num">12</span>Версіонування API</h2>
+<p>Маршрути API живуть у &lt;code&gt;routes/api.php&lt;/code&gt;, якому Laravel автоматично додає префікс &lt;code&gt;/api&lt;/code&gt;. Ендпоінти згруповано під &lt;code&gt;/api/v1&lt;/code&gt;:</p>
+<pre><code>Route::prefix(&#039;v1&#039;)-&gt;group(function (): void {
+    Route::post(&#039;/login&#039;, [AuthController::class, &#039;login&#039;]);
+    Route::get(&#039;/products&#039;, [ProductApiController::class, &#039;index&#039;]);
+    Route::middleware(&#039;auth:sanctum&#039;)-&gt;group(function (): void {
+        Route::post(&#039;/products&#039;, [ProductApiController::class, &#039;store&#039;]);
+    });
+});</code></pre>
+<p>Навіщо версіювати: коли в майбутньому зміниться контракт (наприклад, поле &lt;code&gt;price&lt;/code&gt; стане об&amp;#039;єктом з валютою), старі клієнти не зламаються — вони продовжать бити &lt;code&gt;/api/v1&lt;/code&gt;, а нові перейдуть на &lt;code&gt;/api/v2&lt;/code&gt;. Це звичайна гігієна публічних API.</p>
+<p>Публічні маршрути (реєстрація, вхід, читання товарів і довідників) та захищені (&lt;code&gt;auth:sanctum&lt;/code&gt; — вихід, створення/редагування/видалення) розділено прямо в групі.</p>
+<hr>
+</section>
+<section class="card" id="13-feature-тести-захисту">
+<h2><span class="num">13</span>Feature-тести захисту</h2>
+<p>Безпеку перевіряють автоматично, а не очима. &lt;code&gt;ProductApiSecurityTest&lt;/code&gt; покриває ключові сценарії:</p>
+<pre><code>// 401: без токена створення заборонено
+$this-&gt;postJson(&#039;/api/v1/products&#039;, [...])-&gt;assertStatus(401);
+<p>// 403: інший користувач не може видалити чужий запис
+Sanctum::actingAs($intruder);
+$this-&amp;gt;deleteJson(&amp;quot;/api/v1/products/{$product-&amp;gt;id}&amp;quot;)-&amp;gt;assertStatus(403);</p>
+<p>// веб: гостьа перенаправляють на форму входу
+$this-&amp;gt;get(&amp;#039;/shop/create&amp;#039;)-&amp;gt;assertRedirect(&amp;#039;/login&amp;#039;);</p>
+<p>// веб: 403 на пряме звернення до чужого edit
+$this-&amp;gt;actingAs($intruder)-&amp;gt;get(&amp;quot;/shop/{$product-&amp;gt;id}/edit&amp;quot;)-&amp;gt;assertStatus(403);&lt;/code&gt;&lt;/pre&gt;</p>
+<p>Методи &lt;code&gt;postJson()&lt;/code&gt;/&lt;code&gt;deleteJson()&lt;/code&gt; налаштовують заголовок &lt;code&gt;Accept: application/json&lt;/code&gt;, щоб сервер повертав JSON-помилки, а не HTML-сторінку — саме так працює реальний API-клієнт. &lt;code&gt;Sanctum::actingAs()&lt;/code&gt; імітує запит з токеном без реального випуску.</p>
+<hr>
+</section>
+<section class="card" id="14-узгодження-з-use-cases-лаб-2">
+<h2><span class="num">14</span>Узгодження з Use Cases лаб. 2</h2>
+<p>Ролі та прецеденти проєктування лаб. 2 («Система продажу товарів у супермаркеті») відображено у захищених ендпоінтах:</p>
+<div class="tw"><table><thead><tr><th>Прецедент (лаб. 2)</th><th>Роль</th><th>Ендпоінт /api/v1</th><th>Policy</th><th>Відповідь при забороні</th></tr></thead><tbody><tr><td>Перегляд каталогу</td><td>Гість / будь-хто</td><td>GET <code>/products</code></td><td>viewAny → true</td><td>— (публічно)</td></tr><tr><td>Реєстрація облікового запису</td><td>Гість</td><td>POST <code>/register</code></td><td>—</td><td>422 при помилках валідації</td></tr><tr><td>Вхід у систему</td><td>Зареєстрований</td><td>POST <code>/login</code></td><td>—</td><td>422 при невірних даних</td></tr><tr><td>Додавання товару</td><td>Користувач</td><td>POST <code>/products</code></td><td>create → true</td><td>401 без токена</td></tr><tr><td>Редагування товару</td><td>Власник запису</td><td>PUT <code>/products/{id}</code></td><td>update → власник</td><td>403 чужому</td></tr><tr><td>Видалення товару</td><td>Власник запису</td><td>DELETE <code>/products/{id}</code></td><td>delete → власник</td><td>403 чужому</td></tr><tr><td>Довідники (категорії, знижки, відгуки)</td><td>Гість / будь-хто</td><td>GET <code>/categories</code>, <code>/discounts</code>, <code>/reviews</code></td><td>— (read-only)</td><td>—</td></tr></tbody></table></div>
+<p>Масштабування на всі сутності предметної області виконано read-only ендпоінтами для решти моделей (категорії, знижки, відгуки), а правила авторизації зосереджено на головній сутності Product з індивідуального завдання.</p>
+<hr>
+</section>
+<section class="card" id="15-як-усе-складається-в-лаб-8">
+<h2><span class="num">15</span>Як усе складається в лаб. 8</h2>
+<p>Схема гібридного захисту, який реалізовано в репозиторії:</p>
+<pre><code>                    ┌──────────────────────────┐
+   Браузер (SSR) ──▶│ cookie сесії   │▶ Web\ProductController ─┐
+   curl/Swagger ───▶│ Authorization: Bearer │▶ Api\ProductApiController ─┤
+                    └──────────────────────────┘                │
+                                                  auth (web) / auth:sanctum (api)
+                                                                ▼
+                                              ProductPolicy::update/delete
+                                                     user_id === owner
+                                                    /            \
+                                                 false          true
+                                                  ▼               ▼
+                                     403 HTML / 403 JSON   операція виконується</code></pre>
+<ol>
+<ul>
+<li><strong>Автентифікація</strong> розведена: сесії для Blade-інтерфейсу (<code>/login</code>, <code>/register</code>), Bearer-токени Sanctum для API (<code>/api/v1/login</code>, <code>/api/v1/register</code>).</li>
+<li><strong>Авторизація</strong> — єдина: <code>ProductPolicy</code>, викликана <code>$this-&gt;authorize()</code> з обох контролерів.</li>
+<li><strong>Дані</strong> віддаються клієнту через <code>ProductResource</code> з жадібно завантаженими зв&#039;язками.</li>
+<li><strong>Документація</strong> згенерована з тих самих контролерів у <code>/api/documentation</code> й перевірена вручну у Swagger UI.</li>
+<li><strong>Безпека</strong> підтверджена автоматично: <code>ProductApiSecurityTest</code> (401/403) та оновлений <code>CatalogViewTest</code> (redirect, 403 веб).</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="16-глосарій">
+<h2><span class="num">16</span>Глосарій</h2>
+<div class="tw"><table><thead><tr><th>Термін</th><th>Значення</th></tr></thead><tbody><tr><td><strong>Автентифікація</strong></td><td>перевірка ідентичності: «хто ви?»</td></tr><tr><td><strong>Авторизація</strong></td><td>перевірка прав: «що вам дозволено?»</td></tr><tr><td><strong>Сесія</strong></td><td>серверне сховище стану браузерного користувача</td></tr><tr><td><strong>Bearer-токен</strong></td><td>рядок у заголовку <code>Authorization</code>, що ідентифікує API-клієнта</td></tr><tr><td><strong>Sanctum</strong></td><td>офіційний пакет Laravel для випуску та перевірки API-токенів</td></tr><tr><td><strong><code>plainTextToken</code></strong></td><td>токен, який показують клієнту один раз; у БД лежить лише хеш</td></tr><tr><td><strong>Gate</strong></td><td>замикання-правило авторизації, не прив&#039;язане до моделі</td></tr><tr><td><strong>Policy</strong></td><td>клас правил авторизації навколо Eloquent-моделі</td></tr><tr><td><strong><code>authorize()</code></strong></td><td>метод контролера, що викликає Policy та кидає 403 при забороні</td></tr><tr><td><strong>API Resource</strong></td><td>клас-трансформер між Eloquent-моделлю та JSON-відповіддю</td></tr><tr><td><strong>Eager Loading</strong></td><td>завантаження зв&#039;язків одним запитом (<code>with()</code>), проти N + 1</td></tr><tr><td><strong>OpenAPI (OAS)</strong></td><td>стандарт опису REST API у YAML/JSON</td></tr><tr><td><strong>Swagger UI</strong></td><td>інтерактивна вебдокументація, згенерована зі специфікації</td></tr><tr><td><strong>401 Unauthorized</strong></td><td>неавтентифікований запит (немає/невірний токен)</td></tr><tr><td><strong>403 Forbidden</strong></td><td>автентифікований, але без прав на дію</td></tr></tbody></table></div>
+<hr>
+</section>
+<section class="card" id="17-питання-для-самоконтролю">
+<h2><span class="num">17</span>Питання для самоконтролю</h2>
+<ol>
+<ul>
+<li>У чому принципова відмінність між сесійною автентифікацією та токен-автентифікацією через Sanctum для REST API?</li>
+<li>Як механізм перевірки токена Sanctum працює на рівні БД та HTTP-заголовків?</li>
+<li>Чим Gate відрізняється від Policy і коли доцільний кожен із них?</li>
+<li>Яку роль відіграє шар <code>JsonResource</code> між моделями Eloquent та клієнтом API?</li>
+<li>Як в <code>JsonResource</code> уникнути проблеми N + 1 запитів при серіалізації зв&#039;язків?</li>
+<li>Для чого потрібна специфікація OpenAPI і які переваги дає Swagger UI?</li>
+<li>У чому різниця між 401 Unauthorized та 403 Forbidden?</li>
+<li>Чому у Feature-тестах JSON API використовують <code>postJson()</code>/<code>deleteJson()</code> замість <code>post()</code>?</li>
+<li>Чому при вході потрібен <code>session()-&gt;regenerate()</code>, а при виході — <code>invalidate()</code> та <code>regenerateToken()</code>?</li>
+</ul>
+</ol>
+<hr>
+</section>
+<section class="card" id="18-відповіді">
+<h2><span class="num">18</span>Відповіді</h2>
+<ol>
+<ul>
+<li>Сесія зберігає стан на сервері та ідентифікує користувача через cookie автоматично; токен — без стану: клієнт сам передає <code>Authorization: Bearer &lt;token&gt;</code> у кожному запиті, сервер лише перевіряє хеш у БД. Сесія — для браузера (SSR), токен — для API-клієнтів (SPA, мобільні, curl).</li>
+<li><code>createToken()</code> зберігає SHA-256 хеш токена у <code>personal_access_tokens</code> (з прив&#039;язкою до user_id); на кожному запиті middleware <code>auth:sanctum</code> хешує токен із заголовка <code>Authorization: Bearer</code> і шукає збіг у таблиці — знайдений запис визначає користувача.</li>
+<li>Gate — замикання для дій, не прив&#039;язаних до моделі (доступ до адмін-панелі); Policy — клас правил навколо конкретної моделі (update/delete власника). Policy — для CRUD ресурсу, Gate — для загальних перевірок.</li>
+<li><code>JsonResource</code> — шар трансформації: задає чіткий контракт JSON (які поля, у якому форматі), приховує внутрішню структуру БД, перейменовує ключі (<code>user_id</code> → <code>owner_id</code>), умовно включає зв&#039;язки через <code>whenLoaded()</code>.</li>
+<li>Поєднати Eager Loading у контролері (<code>with(&#039;category&#039;)</code>) та <code>whenLoaded(&#039;category&#039;)</code> у ресурсі: поле потрапляє у відповідь лише коли зв&#039;язок завантажено одним додатковим запитом; без нього поле відсутнє, і прихованого N + 1 не виникає.</li>
+<li>OpenAPI — стандартизований машинозчитуваний опис ендпоінтів; він не застаріває, бо генерується з атрибутів контролерів. Swagger UI візуалізує специфікацію, дозволяє авторизуватися Bearer-токеном і виконувати реальні запити (201/403) без написання коду.</li>
+<li>401 — «не впізнано» (немає токена, невірні облікові дані): клієнту треба пройти автентифікацію. 403 — «впізнано, але заборонено» (політика відмовила): повторна автентифікація не допоможе.</li>
+<li><code>postJson()</code>/<code>deleteJson()</code> ставлять <code>Accept: application/json</code>, тому валідаційні помилки та винятки повертаються як JSON (422/401/403), як для реального API-клієнта, а не редірект на HTML-сторінку.</li>
+<li><code>regenerate()</code> після входу міняє ID сесії — захист від Session Fixation. <code>invalidate()</code> при виході стирає дані сесії, <code>regenerateToken()</code> міняє CSRF-токен, щоб старі форми у відкритих вкладках стали недійсними.</li>
+</ul>
+</ol>
+</section>
+  </main>
+</div>
+
+<footer>
+  <p>Лабораторна №8 · HTML-версія теорії · синхронізовано з <code>docs/theory/theory-lab8.html</code> у GitHub.</p>
+</footer>
+<a class="top" href="#" title="Вгору" aria-label="Вгору">↑</a>
+</body>
+</html>

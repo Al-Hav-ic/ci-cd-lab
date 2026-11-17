@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гайд по роботі з проєктом ci-cd-lab</title>
+<style>
+
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1b2027; --muted:#5a6472;
+  --line:#e2e6ec; --accent:#2f6feb; --accent-soft:#eaf1fe;
+  --green:#18794e; --green-soft:#e8f6ee; --amber:#8a5a00; --amber-soft:#fdf3e0;
+  --red:#b42318; --red-soft:#fdecea; --violet:#6b3fa0; --violet-soft:#f2ecfa;
+  --code-bg:#101827; --code-text:#e7eef9; --radius:14px;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px -16px rgba(16,24,40,.22);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+a{color:var(--accent)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#16233f 0%,#2f6feb 58%,#4f9cf9 100%);color:#fff;padding:42px 22px 36px}
+.hero-in{max-width:1180px;margin:0 auto}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.hero h1{margin:0 0 12px;font-size:clamp(25px,4vw,38px);line-height:1.18;letter-spacing:-.02em}
+.hero p{margin:0;max-width:80ch;font-size:16.5px;opacity:.94}
+.chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:600;color:#fff}
+
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;display:grid;
+  grid-template-columns:262px minmax(0,1fr);gap:30px;align-items:start}
+@media(max-width:960px){.wrap{grid-template-columns:1fr;gap:18px}}
+
+/* toc */
+.toc{position:sticky;top:18px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);max-height:calc(100vh - 36px);overflow:auto}
+@media(max-width:960px){.toc{position:static;max-height:none}}
+.toc h2{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.toc ol{margin:0;padding-left:18px;font-size:14px}
+.toc li{margin:5px 0}
+.toc a{text-decoration:none;color:#33404f}
+.toc a:hover{color:var(--accent)}
+.toc .sep{height:1px;background:var(--line);margin:12px 0;list-style:none}
+
+/* typography */
+main{min-width:0}
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 28px;margin:0 0 22px;box-shadow:var(--shadow)}
+@media(max-width:600px){section.card{padding:20px 16px}}
+h2{font-size:23px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:17.5px;margin:26px 0 8px}
+h4{font-size:15px;margin:20px 0 6px;color:#2a3442}
+p{margin:10px 0}
+ul,ol{margin:10px 0;padding-left:24px}
+li{margin:5px 0}
+.small{font-size:13.5px;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+/* code */
+pre{background:var(--code-bg);color:var(--code-text);padding:14px 16px;border-radius:11px;
+  overflow:auto;font-size:13.2px;line-height:1.6;margin:12px 0;border:1px solid #1d2b45}
+pre .c{color:#8fa4c4} /* comment-ish not used automatically */
+:not(pre)>code{background:#eef1f6;border:1px solid #e2e7ef;border-radius:6px;
+  padding:1px 6px;font-size:13.4px;color:#243044;white-space:nowrap}
+
+/* tables */
+.tw{overflow:auto;margin:14px 0;border:1px solid var(--line);border-radius:11px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f3f6fb;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#425063}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafcff}
+
+/* callouts */
+.note,.warn,.ok,.danger{border-radius:11px;padding:13px 16px;margin:14px 0;font-size:14.5px;
+  border:1px solid;border-left-width:4px}
+.note{background:var(--accent-soft);border-color:#c8dbfb;border-left-color:var(--accent)}
+.warn{background:var(--amber-soft);border-color:#f3ddb3;border-left-color:#c98a00}
+.ok{background:var(--green-soft);border-color:#bfe6d0;border-left-color:var(--green)}
+.danger{background:var(--red-soft);border-color:#f6cfca;border-left-color:var(--red)}
+.note b,.warn b,.ok b,.danger b{display:block;margin-bottom:2px}
+
+/* diagram */
+.flow{display:grid;gap:10px;margin:16px 0}
+.flow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.node{flex:1 1 150px;background:#f7f9fd;border:1px solid #d9e2f1;border-radius:10px;
+  padding:10px 12px;font-size:13.2px;line-height:1.45}
+.node b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--accent);margin-bottom:3px}
+.node.red{background:var(--red-soft);border-color:#f0c7c1}
+.node.red b{color:var(--red)}
+.node.green{background:var(--green-soft);border-color:#b9e2c9}
+.node.green b{color:var(--green)}
+.arrow{flex:0 0 auto;align-self:center;color:#9aa7b8;font-size:18px}
+
+/* timeline */
+.steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
+.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px;margin:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;
+  border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:#dbe5f5}
+.steps li:last-child::after{display:none}
+
+/* questions */
+.qhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 6px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.b-easy{background:var(--green-soft);border-color:#b9e2c9;color:var(--green)}
+.b-mid{background:var(--amber-soft);border-color:#f0d9ac;color:var(--amber)}
+.b-hard{background:var(--violet-soft);border-color:#dcccf2;color:var(--violet)}
+.qcount{font-size:13px;color:var(--muted)}
+details.qa{border:1px solid var(--line);border-radius:11px;padding:0;margin:10px 0;background:#fcfdff;overflow:hidden}
+details.qa summary{cursor:pointer;list-style:none;padding:13px 16px 13px 42px;position:relative;
+  font-weight:600;font-size:15px;line-height:1.45}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa summary::before{content:"+";position:absolute;left:14px;top:11px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:5px;background:#e9eefb;
+  color:var(--accent);font-weight:700;font-size:15px}
+details.qa[open] summary::before{content:"–"}
+details.qa summary:hover{background:#f2f6ff}
+.qa .ans{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14.6px;background:#fff}
+.qa .ans p:first-child{margin-top:10px}
+.qbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.btn{appearance:none;border:1px solid #cdd8ea;background:#fff;color:#25324a;border-radius:9px;
+  padding:7px 13px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{background:#f2f6ff;border-color:#b6c8e6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#255fce}
+
+/* footer */
+footer{max-width:1180px;margin:0 auto;padding:0 22px 60px;color:var(--muted);font-size:13.5px}
+.top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  text-decoration:none;box-shadow:0 8px 20px -6px rgba(47,111,235,.6);font-size:18px}
+
+@media print{
+  .toc,.top,.qbar,.hero{position:static}
+  body{background:#fff}
+  section.card{box-shadow:none;border:0;padding:0;margin:0 0 8px;page-break-inside:auto}
+  details.qa{page-break-inside:avoid}
+  details.qa .ans{display:block!important}
+}
+
+.wrap{grid-template-columns:minmax(0,1fr)}
+.hero-links{margin-top:16px}
+.hero-links a{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);
+  border-radius:999px;padding:8px 18px;color:#fff;text-decoration:none;font-weight:600;font-size:14px}
+.hero-links a:hover{background:rgba(255,255,255,.24)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="eyebrow">ci-cd-lab · Система «Супермаркет» · лабораторні 1–8</p>
+    <h1>Гайд по роботі з проєктом</h1>
+    <p>Все для запуску та перевірки проєкту: встановлення, облікові записи з паролями, вебінтерфейс, REST API з токенами, Swagger UI, тести та CI/CD-цикл на GitHub.</p>
+    <div class="chips">
+      <span class="chip">Laravel 12</span><span class="chip">SQLite</span><span class="chip">Sanctum</span><span class="chip">Swagger</span><span class="chip">GitHub Actions</span>
+    </div>
+    <div class="hero-links"><a href="theory/index.html">← Збірник теорії (мапа всіх теоретичних файлів)</a></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <main>
+
+  <section class="card" id="about">
+    <h2><span class="num">01</span>Що це за проєкт</h2>
+    <p><b>ci-cd-lab</b> — навчальний проєкт «Система продажу товарів у супермаркеті» (Гавриленко Олексій, Al-Hav-ic), який нарощується впродовж восьми лабораторних робіт: Git і CI/CD → проєктування (Use Case, UML) → PHP → ООП → Laravel API → бази даних → Blade-інтерфейс → Sanctum, Policies, Swagger.</p>
+    <ul>
+      <li>Репозиторій: <a href="https://github.com/Al-Hav-ic/ci-cd-lab">github.com/Al-Hav-ic/ci-cd-lab</a>;</li>
+      <li>кожна лабораторна — окрема гілка <code>feature/*</code> і Pull Request (merge — після рев'ю одногрупника);</li>
+      <li>теорія до кожної лаби — у збірнику: <a href="theory/index.html">theory-index.html / docs/theory/index.html</a>.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="prereq">
+    <h2><span class="num">02</span>Передумови</h2>
+    <table>
+      <thead><tr><th>Інструмент</th><th>Де знаходиться</th><th>Примітка</th></tr></thead>
+      <tbody>
+        <tr><td>PHP 8.2</td><td><code>D:\PhPLabs\_tools\php\php.exe</code></td><td>не в PATH — викликати повним шляхом</td></tr>
+        <tr><td>Composer</td><td><code>D:\PhPLabs\_tools\composer.phar</code></td><td>запуск: <code>php.exe composer.phar …</code></td></tr>
+        <tr><td>Git</td><td>у PATH</td><td>—</td></tr>
+        <tr><td>GitHub CLI (gh)</td><td>у PATH</td><td>авторизований як Al-Hav-ic</td></tr>
+        <tr><td>Chrome</td><td><code>C:\Program Files\Google\Chrome</code></td><td>для Swagger UI та PDF-звітів</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card" id="quickstart">
+    <h2><span class="num">03</span>Швидкий старт</h2>
+<pre># 1. Клонувати та встановити залежності
+git clone https://github.com/Al-Hav-ic/ci-cd-lab.git
+cd ci-cd-lab
+D:\PhPLabs\_tools\php\php.exe D:\PhPLabs\_tools\composer.phar install
+
+# 2. Конфігурація оточення
+copy .env.example .env
+D:\PhPLabs\_tools\php\php.exe artisan key:generate
+
+# 3. База даних (SQLite) з демо-даними
+D:\PhPLabs\_tools\php\php.exe artisan migrate:fresh --seed
+
+# 4. Запуск dev-сервера
+D:\PhPLabs\_tools\php\php.exe artisan serve --host=127.0.0.1 --port=8000</pre>
+    <ul>
+      <li>БД для сервера — файл <code>database/database.sqlite</code>; тести жорстко використовують окрему in-memory SQLite (<code>phpunit.xml</code>), тому <code>artisan test</code> не чіпає демо-дані;</li>
+      <li><code>APP_DEBUG</code>: <code>true</code> — з трейсами для відладки (стандарт <code>.env.example</code>); <code>false</code> — чисті JSON-помилки без трейсів (як у робочому <code>.env</code>, зручно для Swagger і скріншотів);</li>
+      <li>якщо порт 8000 зайнятий: <code>Get-NetTCPConnection -LocalPort 8000</code> → <code>Stop-Process -Id &lt;PID&gt;</code> або запустити на іншому порту.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="accounts">
+    <h2><span class="num">04</span>Облікові записи та паролі</h2>
+    <p>Створюються сідером (<code>php artisan db:seed</code>) для демонстрації авторизації лаб. 8:</p>
+    <table>
+      <thead><tr><th>Логін (email)</th><th>Пароль</th><th>Ім'я</th><th>Роль у демо</th></tr></thead>
+      <tbody>
+        <tr><td><code>owner@lab.test</code></td><td><code>password123</code></td><td>Олена Власниця</td><td>власник товарів 1–4: бачить кнопки «Редаг./Видалити», у API отримує 201</td></tr>
+        <tr><td><code>neighbour@lab.test</code></td><td><code>password123</code></td><td>Іван Сусід</td><td>власник товарів 5–8: чужі записи — лише перегляд, DELETE чужого → 403</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>новий користувач: сторінка <a href="http://127.0.0.1:8000/register">/register</a> (веб) або <code>POST /api/v1/register</code>;</li>
+      <li>пароли демонстраційні і не є секретом (їх видно у <code>database/seeders/DatabaseSeeder.php</code> у відкритому репозиторії);</li>
+      <li>GitHub-облікові дані в проєкті не зберігаються — робота з репозиторієм через <code>gh</code> CLI (авторизація один раз: <code>gh auth login</code>).</li>
+    </ul>
+  </section>
+
+  <section class="card" id="web">
+    <h2><span class="num">05</span>Вебінтерфейс</h2>
+    <p>Після <code>artisan serve</code>: <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a></p>
+    <table>
+      <thead><tr><th>Сторінка</th><th>URL</th><th>Доступ</th></tr></thead>
+      <tbody>
+        <tr><td>Головна</td><td><code>/</code></td><td>публічна</td></tr>
+        <tr><td>Каталог товарів</td><td><code>/shop</code></td><td>перегляд — всім; створення/редагування/видалення — після входу, <b>лише власник запису</b> (ProductPolicy)</td></tr>
+        <tr><td>Вхід / реєстрація</td><td><code>/login</code>, <code>/register</code></td><td>гості (автентифікованих перекидає з літералів guest-middleware)</td></tr>
+        <tr><td>Керування рештою сутностей</td><td><code>/manage/categories</code>, <code>/customers</code>, <code>/discounts</code>, <code>/orders</code>, <code>/reviews</code></td><td>відкриті сторінки CRUD (лаб. 7)</td></tr>
+        <tr><td>Сторінка 403</td><td><code>/shop/{id}/edit</code> чужого запису</td><td>кастомна <code>errors/403.blade.php</code></td></tr>
+      </tbody>
+    </table>
+    <p><b>Сценарій перевірки авторизації:</b> 1) увійти як <code>owner@lab.test</code> — у каталозі кнопки біля товарів 1–4; 2) вийти, увійти як <code>neighbour@lab.test</code> — кнопок біля чужих немає; 3) відкрити напряму <code>/shop/1/edit</code> — сторінка 403. Navbar перемикається директивами <code>@guest</code>/<code>@auth</code>, кнопки — <code>@can</code>.</p>
+  </section>
+
+  <section class="card" id="api">
+    <h2><span class="num">06</span>REST API: /api/v1 (лаб. 8)</h2>
+    <table>
+      <thead><tr><th>Ендпоінт</th><th>Метод</th><th>Доступ</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/v1/register</code>, <code>/api/v1/login</code></td><td>POST</td><td>публічні</td></tr>
+        <tr><td><code>/api/v1/products</code>, <code>/api/v1/products/{id}</code></td><td>GET</td><td>публічні</td></tr>
+        <tr><td><code>/api/v1/categories</code>, <code>/discounts</code>, <code>/reviews</code></td><td>GET</td><td>публічні (read-only)</td></tr>
+        <tr><td><code>/api/v1/logout</code>, <code>/api/v1/user</code></td><td>POST, GET</td><td>Bearer-токен</td></tr>
+        <tr><td><code>/api/v1/products</code> (створення)</td><td>POST</td><td>Bearer-токен → 201, без токена → 401</td></tr>
+        <tr><td><code>/api/v1/products/{id}</code></td><td>PUT, DELETE</td><td>Bearer-токен + Policy: власник → 200, інший → 403</td></tr>
+      </tbody>
+    </table>
+<pre># отримати токен
+curl -X POST http://127.0.0.1:8000/api/v1/login ^
+  -H "Content-Type: application/json" ^
+  -d "{\"email\":\"owner@lab.test\",\"password\":\"password123\"}"
+# → {"user":{...},"token":"4|AbC..."}
+
+# запит із токеном
+curl http://127.0.0.1:8000/api/v1/products -H "Authorization: Bearer 4|AbC..." -H "Accept: application/json"
+
+# демонстрація кодів: без токена → 401; DELETE чужого товару з токеном → 403</pre>
+    <p class="small">Завжди додавайте <code>Accept: application/json</code> — інакше помилки валідації повернуться редіректом, а не JSON.</p>
+    <h3>Legacy API лаб. 5–6 (не змінюється)</h3>
+    <p>Ендпоінти <code>/products</code>, <code>/catalog</code>, <code>/orders</code>, <code>/carts</code>, <code>/reviews</code>, <code>/discounts</code> працюють на сесіях без токенів. Записи (POST/PUT/DELETE) до <code>/products</code> та <code>/catalog</code> вимагають заголовок <code>X-App-Client</code> (будь-яке значення, напр. <code>PartnerPortal</code>) — інакше <b>403</b> з <code>X-Security-Policy: Enforced</code>.</p>
+  </section>
+
+  <section class="card" id="swagger">
+    <h2><span class="num">07</span>Swagger UI</h2>
+    <p>Адреса: <a href="http://127.0.0.1:8000/api/documentation">http://127.0.0.1:8000/api/documentation</a></p>
+    <ol class="steps">
+      <li>Розгорнути <b>POST /api/v1/login</b> → Try it out → вписати email/password → <b>Execute</b> → скопіювати <code>token</code> з відповіді;</li>
+      <li>кнопка <b>Authorize</b> (зверху) → вставити токен у поле <code>bearerAuth</code> → Authorize → Close;</li>
+      <li>далі будь-яка операція з <b>Try it out → Execute</b> виконує реальні запити: <code>201</code> для власних записів, <code>403</code> для чужих, <code>401</code> після Logout в Authorize.</li>
+    </ol>
+    <p>Після змін в OpenAPI-атрибутах контролерів перегенерувати документацію: <code>php artisan l5-swagger:generate</code>.</p>
+  </section>
+
+  <section class="card" id="tests">
+    <h2><span class="num">08</span>Тести та стиль коду</h2>
+<pre>D:\PhPLabs\_tools\php\php.exe artisan test
+# → 27 passed (78 assertions): лаб. 3–8, включно з ProductApiSecurityTest (401/403)
+
+D:\PhPLabs\_tools\php\php.exe vendor\laravel\pint\builds\pint --test
+# → PASS: PSR-12 + Laravel preset</pre>
+  </section>
+
+  <section class="card" id="cicd">
+    <h2><span class="num">09</span>CI/CD цикл на GitHub</h2>
+    <ol class="steps">
+      <li><b>Issue</b> на GitHub (мітка <code>enhancement</code>) → додати на Kanban-дошку в колонку <b>In Progress</b>;</li>
+      <li><b>гілка</b> <code>feature/*</code> від гілки попередньої лабораторної (не від main) — так PR містить усі нові лаби;</li>
+      <li>коміти за <b>Conventional Commits</b> (<code>feat:</code>, <code>fix:</code>, <code>docs:</code>…), закриття задачі — <code>(Resolves #N)</code>;</li>
+      <li><b>push</b> → Pull Request → CI <code>php-ci.yml</code>: composer install → migrate → <code>pint --test</code> → <code>artisan test</code>;</li>
+      <li><b>рев'ю</b> одногрупника (branch protection: 1 approval, <code>enforce_admins</code>) → merge у <code>main</code> → Kanban-картка в <b>Done</b>.</li>
+    </ol>
+    <table>
+      <thead><tr><th>Дія</th><th>Команда</th></tr></thead>
+      <tbody>
+        <tr><td>перевірити статус CI на PR</td><td><code>gh pr view 25 --repo Al-Hav-ic/ci-cd-lab --json statusCheckRollup</code></td></tr>
+        <tr><td>створити PR</td><td><code>gh pr create --base main --head feature/… --title … --body-file …</code></td></tr>
+        <tr><td>Kanban-дошка</td><td><code>https://github.com/users/Al-Hav-ic/projects/1</code></td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>Чому PR не зливається сам</b>Захист гілки вимагає схвалення іншого користувача — це навмисно: проходить повний цикл code review.</div>
+  </section>
+
+  <section class="card" id="troubleshooting">
+    <h2><span class="num">10</span>Типові проблеми</h2>
+    <table>
+      <thead><tr><th>Симптом</th><th>Причина</th><th>Дія</th></tr></thead>
+      <tbody>
+        <tr><td><b>419 Page Expired</b> у веб-формі</td><td>CSRF-токен сесії застарів</td><td>перезавантажити форму; <code>artisan config:clear</code></td></tr>
+        <tr><td><b>401</b> у API</td><td>немає/прострочений Bearer-токен</td><td><code>POST /api/v1/login</code> → новий токен</td></tr>
+        <tr><td><b>403</b> у API</td><td>чужий запис (Policy) або відсутній <code>X-App-Client</code> (legacy)</td><td>діяти під власником або додати заголовок</td></tr>
+        <tr><td>HTML замість JSON-помилки</td><td>немає <code>Accept: application/json</code></td><td>додати заголовок (для <code>/api/*</code> JSON гарантовано через <code>shouldRenderJsonWhen</code>)</td></tr>
+        <tr><td>«Address already in use» :8000</td><td>попередній serve ще живий</td><td><code>Stop-Process</code> за PID або інший порт</td></tr>
+        <tr><td>«composer not recognized»</td><td>Composer не в PATH</td><td>викликати через <code>php.exe composer.phar</code></td></tr>
+        <tr><td>CI не запустився</td><td>зміни не запушені</td><td><code>git push</code> → перевірити вкладку Actions</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>Гайд по проєкту ci-cd-lab · теорія до всіх лабораторних — у <a href="theory/index.html">збірнику теорії</a> · репозиторій: <a href="https://github.com/Al-Hav-ic/ci-cd-lab">Al-Hav-ic/ci-cd-lab</a></p>
+</footer>
+<a class="top" href="#" title="Вгору" aria-label="Вгору">↑</a>
+
+</body>
+</html>
