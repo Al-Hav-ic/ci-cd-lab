@@ -11,7 +11,8 @@
 | 5 | [theory-lab5.html](theory-lab5.html) |
 | 6 | [theory-lab6.html](theory-lab6.html) |
 | 7 | [theory-lab7.html](theory-lab7.html) |
+| 8 | [theory-lab8.html](theory-lab8.html) |
 
-Джерело для лаб. 2–7: `labN/THEORY.md` у робочій теці PhPLabs (генерація — `_tools/build-theory-html.php`). Лаб. 1 — розширений HTML з питаннями та відповідями.
+Джерело для лаб. 2–8: `labN/THEORY.md` у робочій теці PhPLabs (генерація — `_tools/build-theory-html.php`). Лаб. 1 — розширений HTML з питаннями та відповідями.
 
 Репозиторій коду: https://github.com/Al-Hav-ic/ci-cd-lab

@@ -13,6 +13,7 @@
 | 5 | [#16](https://github.com/Al-Hav-ic/ci-cd-lab/issues/16) | [#11](https://github.com/Al-Hav-ic/ci-cd-lab/pull/11), [#18](https://github.com/Al-Hav-ic/ci-cd-lab/pull/18) | API супермаркет |
 | 6 | #19 | [#20](https://github.com/Al-Hav-ic/ci-cd-lab/pull/20) | Eloquent, міграції, зв'язки |
 | 7 | #22 | [#23](https://github.com/Al-Hav-ic/ci-cd-lab/pull/23) | Blade UI: макети, форми, веб-CRUD |
+| 8 | #24 | [#25](https://github.com/Al-Hav-ic/ci-cd-lab/pull/25) | Sanctum, ProductPolicy, ProductResource, /api/v1, OpenAPI/Swagger |
 | 1 (docs) | [#4](https://github.com/Al-Hav-ic/ci-cd-lab/issues/4) | (цей PR) | процес релізу в README |
 
 **Примітка:** Issue #4 була помилково закрита комітом лаб. 3; перевідкрита та закрита PR із документацією процесу релізу в README.
