@@ -35,5 +35,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // REST API (/api/*) завжди повертає JSON-помилки навіть для клієнтів
+        // без заголовка Accept: application/json (інакше 401/403 редіректили
+        // б на HTML-сторінку /login) — лабораторна №8.
+        $exceptions->shouldRenderJsonWhen(fn ($request, $e) => $request->is('api/*') || $request->expectsJson());
     })->create();
