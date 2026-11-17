@@ -10,6 +10,7 @@ use App\Models\Discount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -31,8 +32,8 @@ class CatalogViewTest extends TestCase
             'price' => 42.50,
         ]);
 
-        // GET-запит на сторінку списку (SSR через Blade)
-        $response = $this->get('/shop');
+        // GET-запит на сторінку списку (SSR через Blade) від імені користувача
+        $response = $this->actingAs(User::factory()->create())->get('/shop');
 
         // Статус 200 + назва товару + категорія через Eager Loading + кнопка створення
         $response->assertStatus(200)
@@ -44,8 +45,8 @@ class CatalogViewTest extends TestCase
 
     public function test_create_form_validates_input(): void
     {
-        // Порожня назва та некоректна ціна -> помилки серверної валідації в сесії
-        $response = $this->post('/shop', [
+        // Створення дозволено лише автентифікованим користувачам (лаб. 8).
+        $response = $this->actingAs(User::factory()->create())->post('/shop', [
             'name' => '',
             'price' => 'invalid',
         ]);
@@ -80,9 +81,10 @@ class CatalogViewTest extends TestCase
 
     public function test_store_creates_product_through_html_form(): void
     {
+        $user = User::factory()->create();
         $category = Category::factory()->create();
 
-        $response = $this->post('/shop', [
+        $response = $this->actingAs($user)->post('/shop', [
             'name' => 'Сир Голландський 45%',
             'sku' => 'CHEESE-0007',
             'price' => '310.50',
@@ -94,9 +96,11 @@ class CatalogViewTest extends TestCase
         $response->assertRedirect(route('shop.index'))
             ->assertSessionHas('success');
 
+        // Запис автоматично прив'язується до поточного користувача (власник).
         $this->assertDatabaseHas('products', [
             'sku' => 'CHEESE-0007',
             'category_id' => $category->id,
+            'user_id' => $user->id,
         ]);
     }
 }

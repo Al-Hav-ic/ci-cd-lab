@@ -5,7 +5,9 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Каталог товарів</h1>
-        <a href="{{ route('shop.create') }}" class="btn btn-primary">Додати новий запис</a>
+        @can('create', App\Models\Product::class)
+            <a href="{{ route('shop.create') }}" class="btn btn-primary">Додати новий запис</a>
+        @endcan
     </div>
 
     <table class="table table-bordered table-striped align-middle">
@@ -38,13 +40,17 @@
                 </td>
                 <td>
                     <a href="{{ route('shop.show', $product->id) }}" class="btn btn-sm btn-info">Перегляд</a>
-                    <a href="{{ route('shop.edit', $product->id) }}" class="btn btn-sm btn-warning">Редаг.</a>
-                    <form action="{{ route('shop.destroy', $product->id) }}" method="POST" class="d-inline"
-                          onsubmit="return confirm('Дійсно видалити?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
-                    </form>
+                    @can('update', $product)
+                        <a href="{{ route('shop.edit', $product->id) }}" class="btn btn-sm btn-warning">Редаг.</a>
+                    @endcan
+                    @can('delete', $product)
+                        <form action="{{ route('shop.destroy', $product->id) }}" method="POST" class="d-inline"
+                              onsubmit="return confirm('Дійсно видалити?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                        </form>
+                    @endcan
                 </td>
             </tr>
         @empty

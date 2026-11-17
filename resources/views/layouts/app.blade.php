@@ -20,6 +20,23 @@
                 <li class="nav-item"><a class="nav-link" href="{{ route('manage.orders.index') }}">Замовлення</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ route('manage.reviews.index') }}">Відгуки</a></li>
             </ul>
+            <ul class="navbar-nav ms-auto">
+                @guest
+                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Увійти</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Реєстрація</a></li>
+                @endguest
+                @auth
+                    <li class="nav-item">
+                        <span class="nav-link text-info">{{ Auth::user()->name }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-link nav-link">Вийти</button>
+                        </form>
+                    </li>
+                @endauth
+            </ul>
             <span class="navbar-text small text-white-50">Blade · SSR · Лаб. 7</span>
         </div>
     </div>

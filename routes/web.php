@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\DiscountController as WebDiscountController;
 use App\Http\Controllers\Web\OrderController as WebOrderController;
 use App\Http\Controllers\Web\ProductController as WebProductController;
 use App\Http\Controllers\Web\ReviewController as WebReviewController;
+use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', fn () => response()->json([
@@ -89,7 +90,41 @@ Route::apiResource('discounts', DiscountController::class)
 
 Route::view('/', 'home')->name('home');
 
+/*
+|--------------------------------------------------------------------------
+| Автентифікація вебінтерфейсу (лаб. 8): сесії, CSRF, Session Fixation
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/login', [WebAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [WebAuthController::class, 'login']);
+    Route::get('/register', [WebAuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [WebAuthController::class, 'register']);
+});
+
+Route::post('/logout', [WebAuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| Каталог (/shop, лаб. 7): публічний перегляд + захищена зміна даних (лаб. 8)
+|--------------------------------------------------------------------------
+| Гостей посередник auth перенаправляє на /login; власника запису
+| перевіряє ProductPolicy ($this->authorize у контролері).
+| Захищені маршрути реєструються ПЕРШИМИ: інакше GET /shop/create
+| перехоплюється публічним маршрутом show (GET /shop/{product}).
+*/
+
+Route::middleware('auth')->group(function (): void {
+    Route::resource('shop', WebProductController::class)
+        ->only(['create', 'store', 'edit', 'update', 'destroy'])
+        ->parameters(['shop' => 'product']);
+});
+
 Route::resource('shop', WebProductController::class)
+    ->only(['index', 'show'])
     ->parameters(['shop' => 'product']);
 
 Route::prefix('manage')->name('manage.')->group(function (): void {

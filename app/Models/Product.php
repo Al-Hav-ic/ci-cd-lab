@@ -18,6 +18,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'user_id',
         'sku',
         'name',
         'description',
@@ -43,6 +44,14 @@ class Product extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Зв'язок Many-to-One — товар має власника-користувача (лабораторна №8).
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function cartItems(): HasMany

@@ -14,7 +14,9 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Review;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -32,6 +34,22 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         $products = Product::query()->get();
+
+        // 1а. Демонстраційні облікові записи (лаб. 8): власники записів
+        // для демонстрації ProductPolicy (@can у Blade, 403 у API).
+        $ownerA = User::create([
+            'name' => 'Олена Власниця',
+            'email' => 'owner@lab.test',
+            'password' => Hash::make('password123'),
+        ]);
+        $ownerB = User::create([
+            'name' => 'Іван Сусід',
+            'email' => 'neighbour@lab.test',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $products->take(4)->each(fn (Product $product) => $product->update(['user_id' => $ownerA->id]));
+        $products->slice(4, 4)->each(fn (Product $product) => $product->update(['user_id' => $ownerB->id]));
 
         // 2. Довідник знижок для зв'язку M:M.
         $discounts = Discount::factory()->count(10)->create();

@@ -57,6 +57,9 @@ class ProductController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        // Запис прив'язується до поточного користувача — власник для ProductPolicy.
+        $validated['user_id'] = auth()->id();
+
         Product::create($validated);
 
         return redirect()
@@ -66,6 +69,9 @@ class ProductController extends Controller
 
     public function edit(Product $product): View
     {
+        // Політика: редагувати дозволено лише власнику запису (інакше — 403).
+        $this->authorize('update', $product);
+
         $categories = Category::query()->orderBy('name')->get();
 
         return view('shop.edit', ['product' => $product, 'categories' => $categories]);
@@ -73,6 +79,8 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product): RedirectResponse
     {
+        $this->authorize('update', $product);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:255'],
             // ignore(): власний поточний SKU не вважається конфліктом унікальності
@@ -93,6 +101,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
+        $this->authorize('delete', $product);
+
         $product->delete();
 
         return redirect()
