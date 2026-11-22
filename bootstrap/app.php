@@ -19,6 +19,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'products',
             'products/*',
+            'catalog',
+            'catalog/*',
+            'categories',
+            'categories/*',
+            'carts',
+            'carts/*',
+            'orders',
+            'orders/*',
+            'reviews',
+            'reviews/*',
+            'discounts',
+            'discounts/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

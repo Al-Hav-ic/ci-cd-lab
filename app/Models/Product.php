@@ -4,48 +4,59 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Interfaces\ExportableInterface;
-use App\Traits\JsonExportTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Product extends AbstractEntity implements ExportableInterface
+/**
+ * Товар супермаркету (Eloquent-модель, лабораторна №6).
+ */
+class Product extends Model
 {
-    use JsonExportTrait;
+    use HasFactory;
 
-    public function __construct(
-        string $id,
-        string $createdAt,
-        private string $name,
-        private float $price,
-        private int $stockQty,
-        private string $manufacturer,
-    ) {
-        parent::__construct($id, $createdAt);
+    protected $fillable = [
+        'category_id',
+        'sku',
+        'name',
+        'description',
+        'price',
+        'stock_qty',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'price' => 'float',
+        'stock_qty' => 'integer',
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * Зв'язок Many-to-One — товар належить конкретній категорії.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
-    public function getDetails(): string
+    public function reviews(): HasMany
     {
-        return sprintf(
-            'Товар #%s «%s»: %s грн, на складі %d шт., виробник — %s',
-            $this->id,
-            $this->name,
-            number_format($this->price, 2),
-            $this->stockQty,
-            $this->manufacturer,
-        );
+        return $this->hasMany(Review::class);
     }
 
-    public function getPrice(): float
+    public function cartItems(): HasMany
     {
-        return $this->price;
+        return $this->hasMany(CartItem::class);
     }
 
-    public function getStockQty(): int
+    public function orderItems(): HasMany
     {
-        return $this->stockQty;
+        return $this->hasMany(OrderItem::class);
     }
 
     public function isAvailable(): bool
     {
-        return $this->stockQty > 0;
+        return $this->is_active && $this->stock_qty > 0;
     }
 }
