@@ -14,6 +14,8 @@
 
 ## Теорія до лабораторних (HTML)
 
+**Збірник:** [docs/theory/index.html](docs/theory/index.html) · **Гайд по роботі з проєктом:** [docs/guide.html](docs/guide.html)
+
 Матеріали для перегляду в браузері — каталог [`docs/theory/`](docs/theory/README.md):
 
 | Лаб. | Файл |

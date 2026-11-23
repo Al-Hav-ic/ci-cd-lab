@@ -1,5 +1,9 @@
 # Теорія до лабораторних (HTML)
 
+Збірник з навігацією за всіма лабораторними: [index.html](index.html)
+
+Гайд по роботі з проєктом (запуск, облікові записи, API, CI/CD): [guide.html](../guide.html)
+
 Канонічні матеріали для перегляду в браузері або на GitHub (Raw / Pages):
 
 | Лаб. | Файл |
@@ -10,7 +14,9 @@
 | 4 | [theory-lab4.html](theory-lab4.html) |
 | 5 | [theory-lab5.html](theory-lab5.html) |
 | 6 | [theory-lab6.html](theory-lab6.html) |
+| 7 | [theory-lab7.html](theory-lab7.html) |
+| 8 | [theory-lab8.html](theory-lab8.html) |
 
-Джерело для лаб. 2–6: `labN/THEORY.md` у робочій теці PhPLabs (генерація — `_tools/build-theory-html.php`). Лаб. 1 — розширений HTML з питаннями та відповідями.
+Джерело для лаб. 2–8: `labN/THEORY.md` у робочій теці PhPLabs (генерація — `_tools/build-theory-html.php`). Лаб. 1 — розширений HTML з питаннями та відповідями.
 
 Репозиторій коду: https://github.com/Al-Hav-ic/ci-cd-lab

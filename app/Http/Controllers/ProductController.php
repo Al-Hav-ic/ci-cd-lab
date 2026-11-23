@@ -10,14 +10,13 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Список товарів із жадібним завантаженням категорії та відгуків.
-     * Eager Loading (with) усуває проблему N+1.
-     */
     public function index(Request $request): JsonResponse
     {
         $products = Product::query()
-            ->with(['category:id,name,slug', 'reviews:id,product_id,rating'])
+            ->with([
+                'category:id,name,slug',
+                'reviews' => static fn ($query) => $query->where('is_approved', true),
+            ])
             ->when(
                 $request->filled('category_id'),
                 static fn ($query) => $query->where('category_id', $request->integer('category_id')),
@@ -40,9 +39,6 @@ class ProductController extends Controller
         ], 200);
     }
 
-    /**
-     * Створення товару з прив'язкою до категорії (зв'язок 1:M).
-     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -54,6 +50,9 @@ class ProductController extends Controller
             'stock_qty' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        $this->authorize('create', Product::class);
+        $validated['user_id'] = $request->user()->id;
 
         $product = Product::create($validated);
         $product->load('category:id,name,slug');
@@ -80,6 +79,8 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product): JsonResponse
     {
+        $this->authorize('update', $product);
+
         $validated = $request->validate([
             'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
             'name' => ['sometimes', 'string', 'min:2', 'max:255'],
@@ -101,6 +102,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product): JsonResponse
     {
+        $this->authorize('delete', $product);
+
         $product->delete();
 
         return response()->json([

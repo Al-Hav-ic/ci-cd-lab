@@ -8,9 +8,14 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\Web\CategoryController as WebCategoryController;
+use App\Http\Controllers\Web\CustomerController as WebCustomerController;
+use App\Http\Controllers\Web\DiscountController as WebDiscountController;
+use App\Http\Controllers\Web\OrderController as WebOrderController;
+use App\Http\Controllers\Web\ProductController as WebProductController;
+use App\Http\Controllers\Web\ReviewController as WebReviewController;
+use App\Http\Controllers\WebAuthController;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/', fn () => view('welcome'));
 
 Route::get('/health', fn () => response()->json([
     'status' => 'OK',
@@ -33,21 +38,21 @@ Route::get('/system-info', fn () => response()->json([
 Route::prefix('products')->name('products.')->group(function () {
     Route::get('/', [ProductController::class, 'index'])->name('index');
     Route::post('/', [ProductController::class, 'store'])
-        ->middleware('product.access')
+        ->middleware(['product.access', 'auth:sanctum'])
         ->name('store');
     Route::get('/{product}', [ProductController::class, 'show'])->name('show');
     Route::put('/{product}', [ProductController::class, 'update'])
-        ->middleware('product.access')
+        ->middleware(['product.access', 'auth:sanctum'])
         ->name('update');
     Route::delete('/{product}', [ProductController::class, 'destroy'])
-        ->middleware('product.access')
+        ->middleware(['product.access', 'auth:sanctum'])
         ->name('destroy');
 });
 
 // Дубль каталогу з назвою, яку використовує методичка лабораторної №6.
 Route::get('/catalog', [ProductController::class, 'index'])->name('catalog.index');
 Route::post('/catalog', [ProductController::class, 'store'])
-    ->middleware('product.access')
+    ->middleware(['product.access', 'auth:sanctum'])
     ->name('catalog.store');
 Route::get('/catalog/{product}', [ProductController::class, 'show'])->name('catalog.show');
 
@@ -71,3 +76,71 @@ Route::apiResource('reviews', ReviewController::class)
 
 Route::apiResource('discounts', DiscountController::class)
     ->only(['index', 'store']);
+
+/*
+|--------------------------------------------------------------------------
+| Вебінтерфейс на Blade (лаб. 7): SSR, макети, компоненти, HTML-форми
+|--------------------------------------------------------------------------
+| API-маршрути вище залишено недоторканими (лаб. 5–6): вони повертають JSON
+| і покриті тестами. Вебсторінки живуть на окремих префiксах:
+|   /shop            — CRUD головної сутності Product (1:M -> categories),
+|   /manage/...      — решта сутностей предметної галузі,
+|   /manage/orders   — 1:M (customer) та M:M (discount_order) через форми.
+*/
+
+Route::view('/', 'home')->name('home');
+
+/*
+|--------------------------------------------------------------------------
+| Автентифікація вебінтерфейсу (лаб. 8): сесії, CSRF, Session Fixation
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/login', [WebAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [WebAuthController::class, 'login']);
+    Route::get('/register', [WebAuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [WebAuthController::class, 'register']);
+});
+
+Route::post('/logout', [WebAuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| Каталог (/shop, лаб. 7): публічний перегляд + захищена зміна даних (лаб. 8)
+|--------------------------------------------------------------------------
+| Гостей посередник auth перенаправляє на /login; власника запису
+| перевіряє ProductPolicy ($this->authorize у контролері).
+| Захищені маршрути реєструються ПЕРШИМИ: інакше GET /shop/create
+| перехоплюється публічним маршрутом show (GET /shop/{product}).
+*/
+
+Route::middleware('auth')->group(function (): void {
+    Route::resource('shop', WebProductController::class)
+        ->only(['create', 'store', 'edit', 'update', 'destroy'])
+        ->parameters(['shop' => 'product']);
+});
+
+Route::resource('shop', WebProductController::class)
+    ->only(['index', 'show'])
+    ->parameters(['shop' => 'product']);
+
+/*
+|--------------------------------------------------------------------------
+| Керування довідниками (/manage, лаб. 7): лише для автентифікованих
+|--------------------------------------------------------------------------
+| Деструктивні операції (store/update/destroy) змінюють дані всієї
+| предметної області, тому весь розділ закритий посередником auth:
+| гостя буде перенаправлено на /login, а необхідність CSRF-токена
+| лишається на формі (див. @csrf у Blade-шаблонах).
+*/
+
+Route::middleware('auth')->prefix('manage')->name('manage.')->group(function (): void {
+    Route::resource('categories', WebCategoryController::class)->except(['show']);
+    Route::resource('customers', WebCustomerController::class)->except(['show']);
+    Route::resource('discounts', WebDiscountController::class)->except(['show']);
+    Route::resource('orders', WebOrderController::class);
+    Route::resource('reviews', WebReviewController::class)->except(['show']);
+});

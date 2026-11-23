@@ -42,4 +42,12 @@ jobs:
         run: php artisan test
 
       - name: Demonstrate GitHub Secrets
-        run: echo "Secret value is ${{ secrets.MY_SUPER_SECRET_KEY }}"
+        env:
+          MY_SUPER_SECRET_KEY: ${{ secrets.MY_SUPER_SECRET_KEY }}
+        run: |
+          # Значення секрету НЕ виводимо в лог: перевіряємо лише наявність.
+          if [ -n "$MY_SUPER_SECRET_KEY" ]; then
+            echo "MY_SUPER_SECRET_KEY is configured."
+          else
+            echo "MY_SUPER_SECRET_KEY is not configured."
+          fi
