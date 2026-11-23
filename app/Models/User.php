@@ -58,4 +58,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Customer::class);
     }
+
+    /**
+     * Чи може користувач модерувати відгуки (лаб. 7, зауваження рев'ю).
+     *
+     * Роль зберігається в users.role (міграція 2026_11_06_000001).
+     */
+    public function isModerator(): bool
+    {
+        return in_array($this->role, ['admin', 'moderator'], true);
+    }
 }
