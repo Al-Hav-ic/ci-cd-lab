@@ -48,10 +48,9 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" name="is_approved" id="is_approved" value="1"
-                           {{ old('is_approved', true) ? 'checked' : '' }}>
-                    <label class="form-check-label" for="is_approved">Схвалено модератором</label>
+                <div class="alert alert-info">
+                    Новий відгук буде опубліковано після перевірки модератором:
+                    статус схвалення встановлюється автоматично.
                 </div>
                 <button type="submit" class="btn btn-success mt-3">Зберегти</button>
                 <a href="{{ route('manage.reviews.index') }}" class="btn btn-secondary mt-3">Скасувати</a>

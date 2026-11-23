@@ -92,7 +92,17 @@ Route::view('/', 'home')->name('home');
 Route::resource('shop', WebProductController::class)
     ->parameters(['shop' => 'product']);
 
-Route::prefix('manage')->name('manage.')->group(function (): void {
+/*
+|--------------------------------------------------------------------------
+| Керування довідниками (/manage, лаб. 7): лише для автентифікованих
+|--------------------------------------------------------------------------
+| Деструктивні операції (store/update/destroy) змінюють дані всієї
+| предметної області, тому весь розділ закритий посередником auth:
+| гостя буде перенаправлено на /login, а необхідність CSRF-токена
+| лишається на формі (див. @csrf у Blade-шаблонах).
+*/
+
+Route::middleware('auth')->prefix('manage')->name('manage.')->group(function (): void {
     Route::resource('categories', WebCategoryController::class)->except(['show']);
     Route::resource('customers', WebCustomerController::class)->except(['show']);
     Route::resource('discounts', WebDiscountController::class)->except(['show']);

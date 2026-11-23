@@ -10,6 +10,7 @@ use App\Models\Discount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -71,7 +72,9 @@ class CatalogViewTest extends TestCase
         $order->discounts()->sync([$discount->id]);
 
         // Форма редагування: select 1:M (покупець) + чекбокси M:M (знижки)
-        $this->get("/manage/orders/{$order->id}/edit")
+        // (/manage/* закритий посилом auth — лаб. 7, зауваження рев'ю)
+        $this->actingAs(User::factory()->create())
+            ->get("/manage/orders/{$order->id}/edit")
             ->assertStatus(200)
             ->assertSee('SAVE-TEST-10')
             ->assertSee('type="checkbox"', false)
