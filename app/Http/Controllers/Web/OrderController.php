@@ -145,16 +145,22 @@ class OrderController extends Controller
     }
 
     /**
-     * Перерахунок підсумків: сума позицій мінус сумарний відсоток знижок (M:M).
+     * Перерахунок підсумків: сума позицій з урахуванням знижки на позицію
+     * мінус сумарний відсоток знижок замовлення (M:M).
      */
     private function recalculateTotals(Order $order): void
     {
         $order->loadMissing('items', 'discounts');
 
+        // Знижка на позицію (order_items.discount) — відсоток, тому
+        // ціна рядка = quantity * unit_price * (1 - discount / 100).
         $subtotal = $order->items->sum(
-            static fn (OrderItem $item): float => $item->quantity * $item->unit_price,
+            static fn (OrderItem $item): float => $item->quantity
+                * $item->unit_price
+                * (1 - $item->discount / 100),
         );
 
+        $subtotal = round((float) $subtotal, 2);
         $percent = min(100.0, (float) $order->discounts->sum('percent'));
         $discountAmount = round($subtotal * $percent / 100, 2);
 

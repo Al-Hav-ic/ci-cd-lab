@@ -51,11 +51,18 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" name="is_approved" id="is_approved" value="1"
-                           {{ old('is_approved', $review->is_approved) ? 'checked' : '' }}>
-                    <label class="form-check-label" for="is_approved">Схвалено модератором</label>
-                </div>
+                @if (auth()->user()?->isModerator())
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_approved" id="is_approved" value="1"
+                               {{ old('is_approved', $review->is_approved) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_approved">Схвалено модератором</label>
+                    </div>
+                @else
+                    <div class="alert alert-secondary">
+                        Статус модерації: <strong>{{ $review->is_approved ? 'схвалено' : 'очікує перевірки' }}</strong>.
+                        Змінювати його може лише модератор.
+                    </div>
+                @endif
                 <button type="submit" class="btn btn-primary mt-3">Оновити</button>
                 <a href="{{ route('manage.reviews.index') }}" class="btn btn-secondary mt-3">Скасувати</a>
             </form>

@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'product.access' => CheckAppClient::class,
         ]);
 
+        // Гости, що потрапили на захищений маршрут, перенаправляються на /login.
+        $middleware->redirectGuestsTo(fn (): string => '/login');
+
         $middleware->validateCsrfTokens(except: [
             'products',
             'products/*',
