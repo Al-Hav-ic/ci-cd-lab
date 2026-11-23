@@ -11,7 +11,9 @@ use App\Models\Discount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ProductDatabaseTest extends TestCase
@@ -47,9 +49,10 @@ class ProductDatabaseTest extends TestCase
             'is_active' => true,
         ];
 
+        Sanctum::actingAs(User::factory()->create());
+
         $response = $this->withHeaders(['X-App-Client' => 'TestRunner'])
             ->postJson('/catalog', $payload);
-
         $response->assertStatus(201)
             ->assertJsonPath('data.category.id', $category->id);
 

@@ -36,8 +36,12 @@ class ProductApiController extends Controller
     public function index(): AnonymousResourceCollection
     {
         // Жадібне завантаження зв'язків, щоб whenLoaded() їх серіалізував.
+        // Публічний read-only каталог містить лише схвалені відгуки.
         $products = Product::query()
-            ->with(['category:id,name', 'reviews:id,product_id,rating,text'])
+            ->with([
+                'category:id,name',
+                'reviews' => static fn ($query) => $query->where('is_approved', true),
+            ])
             ->orderBy('id', 'desc')
             ->paginate(10);
 
@@ -58,7 +62,11 @@ class ProductApiController extends Controller
     )]
     public function show(Product $product): ProductResource
     {
-        $product->load(['category:id,name', 'reviews:id,product_id,rating,text']);
+        $product->load([
+            'category:id,name',
+            'reviews' => static fn ($query) => $query->where('is_approved', true),
+            'reviews.customer.user:id,name',
+        ]);
 
         return new ProductResource($product);
     }
@@ -71,7 +79,7 @@ class ProductApiController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['name', 'sku', 'price', 'category_id'],
+                required: ['name', 'sku', 'price', 'stock_qty', 'category_id'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Ноутбук Pro 16'),
                     new OA\Property(property: 'sku', type: 'string', example: 'NB-2026-01'),
@@ -126,7 +134,7 @@ class ProductApiController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['name', 'sku', 'price', 'category_id'],
+                required: ['name', 'sku', 'price', 'stock_qty', 'category_id'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Ноутбук Pro 16 (оновлено)'),
                     new OA\Property(property: 'sku', type: 'string', example: 'NB-2026-01'),

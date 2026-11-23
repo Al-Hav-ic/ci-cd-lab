@@ -6,7 +6,9 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class ProductAccessTest extends TestCase
@@ -32,17 +34,18 @@ class ProductAccessTest extends TestCase
     {
         $category = Category::factory()->create();
 
+        // auth:sanctum перший захисний шар: без токена доступ блокується 401,
+        // X-App-Client перевіряється далі (legacy demo-ендпоінти).
         $response = $this->postJson('/products', $this->payload($category));
 
-        $response->assertStatus(403)
-            ->assertJson([
-                'status' => 'access_denied',
-            ]);
+        $response->assertStatus(401);
     }
 
     public function test_request_with_valid_header_passes_middleware(): void
     {
         $category = Category::factory()->create();
+
+        Sanctum::actingAs(User::factory()->create());
 
         $response = $this->withHeaders([
             'X-App-Client' => 'AutomatedTestRunner',
@@ -80,7 +83,9 @@ class ProductAccessTest extends TestCase
 
     public function test_store_validates_required_fields(): void
     {
-        $this->withHeaders(['X-App-Client' => 'AutomatedTestRunner'])
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->withHeaders(['X-App-Client' => 'AutomatedTestRunner'])
             ->postJson('/products', ['name' => 'X'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['name', 'category_id', 'sku', 'price']);

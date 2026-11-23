@@ -38,21 +38,21 @@ Route::get('/system-info', fn () => response()->json([
 Route::prefix('products')->name('products.')->group(function () {
     Route::get('/', [ProductController::class, 'index'])->name('index');
     Route::post('/', [ProductController::class, 'store'])
-        ->middleware('product.access')
+        ->middleware(['product.access', 'auth:sanctum'])
         ->name('store');
     Route::get('/{product}', [ProductController::class, 'show'])->name('show');
     Route::put('/{product}', [ProductController::class, 'update'])
-        ->middleware('product.access')
+        ->middleware(['product.access', 'auth:sanctum'])
         ->name('update');
     Route::delete('/{product}', [ProductController::class, 'destroy'])
-        ->middleware('product.access')
+        ->middleware(['product.access', 'auth:sanctum'])
         ->name('destroy');
 });
 
 // Дубль каталогу з назвою, яку використовує методичка лабораторної №6.
 Route::get('/catalog', [ProductController::class, 'index'])->name('catalog.index');
 Route::post('/catalog', [ProductController::class, 'store'])
-    ->middleware('product.access')
+    ->middleware(['product.access', 'auth:sanctum'])
     ->name('catalog.store');
 Route::get('/catalog/{product}', [ProductController::class, 'show'])->name('catalog.show');
 

@@ -137,4 +137,56 @@ class ProductApiSecurityTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_register_returns_user_and_bearer_token(): void
+    {
+        $response = $this->postJson('/api/v1/register', [
+            'name' => 'Тестовий Користувач',
+            'email' => 'newbie@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure(['user' => ['id', 'email'], 'token']);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'newbie@example.com',
+        ]);
+    }
+
+    public function test_register_with_duplicate_email_returns_validation_error(): void
+    {
+        User::factory()->create(['email' => 'newbie@example.com']);
+
+        $response = $this->postJson('/api/v1/register', [
+            'name' => 'Тестовий Користувач',
+            'email' => 'newbie@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_logout_revokes_current_token(): void
+    {
+        $user = User::factory()->create(['password' => 'password123']);
+
+        $login = $this->postJson('/api/v1/login', [
+            'email' => $user->email,
+            'password' => 'password123',
+        ]);
+        $login->assertStatus(200);
+
+        $token = $login->json('token');
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/v1/logout')
+            ->assertStatus(200);
+
+        // Токен має бути видалено з персональної таблиці Sanctum.
+        $this->assertCount(0, $user->tokens()->get());
+    }
 }
